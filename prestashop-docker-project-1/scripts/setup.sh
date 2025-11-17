@@ -1,22 +1,15 @@
 #!/bin/bash
-
-# Navigate to the project directory
 cd "$(dirname "$0")/.."
 
-# Build the Docker images
-docker-compose build
+# Build i uruchom
+docker compose up -d --build
 
-# Start the Docker containers
-docker-compose up -d
-
-# Wait for the database to be ready
-echo "Waiting for the database to be ready..."
-until docker-compose exec db mysqladmin --user=root --password=root ping; do
-    sleep 2
+# Czekaj na DB (root password zgodny z docker-compose.yml)
+echo "Waiting for database..."
+until docker compose exec db mysqladmin --user=root --password=root_password ping &>/dev/null; do
+  sleep 2
 done
 
-# Initialize the database
-echo "Initializing the database..."
-docker-compose exec db mysql -u root -proot < db/init/init.sql
-
-echo "Setup completed. PrestaShop is now running."
+echo "Database ready."
+# Nie uruchamiamy ręcznej inicjalizacji jeśli zostawiasz instalator PrestaShop
+echo "Setup completed. PrestaShop jest uruchomiony."
