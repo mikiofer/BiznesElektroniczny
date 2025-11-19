@@ -1,0 +1,15 @@
+database:
+  host: db
+  port: 3306
+  name: prestashop
+  user: prestashop_user
+  password: prestashop_password
+
+parameters:
+  shop_name: My PrestaShop
+  admin_email: admin@example.com
+  admin_password: admin_password
+  locale: en_US
+  currency: USD
+  country: US
+  timezone: America/New_York
