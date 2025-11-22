@@ -23,7 +23,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  */
 
-$(() => {
+$(document).ready(() => {
   window.form.init();
   nav.init();
   featuresCollection.init();
@@ -31,6 +31,7 @@ $(() => {
   formCategory.init();
   stock.init();
   supplier.init();
+  warehouseCombinations.init();
   customFieldCollection.init();
   virtualProduct.init();
   attachmentProduct.init();
@@ -50,12 +51,12 @@ $(() => {
   BOEvent.emitEvent('Product Combinations Management started', 'CustomEvent');
 
   /** Type product fields display management */
-  $('#form_step1_type_product').on('change', () => {
+  $('#form_step1_type_product').change(() => {
     displayFieldsManager.refresh();
   });
 
   // Validate price fields on input change
-  $(".money-type input[type='text']").on('change', function validate() {
+  $(".money-type input[type='text']").change(function validate() {
     const inputValue = priceCalculation.normalizePrice($(this).val());
     const parsedValue = truncateDecimals(inputValue, 6);
 
@@ -66,7 +67,6 @@ $(() => {
   $('#form-nav').on('click', '.nav-item', () => {
     $('[data-toggle="tooltip"]').tooltip('hide');
     $('[data-toggle="popover"]').popover('hide');
-    resetEditor();
   });
 
   $('.summary-description-container a[data-toggle="tab"]').on('shown.bs.tab', resetEditor);
@@ -77,24 +77,16 @@ $(() => {
  * Reset active tinyMce editor (triggered when switch language, or switching tabs)
  */
 function resetEditor() {
-  if (!window.tinyMCE) {
-    return;
-  }
-
   const languageEditorsSelector = '.summary-description-container div.translation-field.active textarea.autoload_rte';
   $(languageEditorsSelector).each((index, textarea) => {
-    const editor = window.tinyMCE.get(textarea.id);
+    if (window.tinyMCE) {
+      const editor = window.tinyMCE.get(textarea.id);
 
-    if (!editor) {
-      return;
+      if (editor) {
+        // Reset content to force refresh of editor
+        editor.setContent(editor.getContent());
+      }
     }
-
-    // Reset content to force refresh of editor
-    editor.setContent(editor.getContent());
-    setTimeout(() => {
-      editor.execCommand('mceInsertContent', false, '', {skip_focus: true});
-      editor.execCommand('mceAutoResize');
-    }, 250);
   });
 }
 
@@ -112,7 +104,7 @@ window.displayFieldsManager = (function () {
       managedVirtualProduct = virtualProduct;
 
       /** Type product fields display management */
-      $('#form_step1_type_product').on('change', () => {
+      $('#form_step1_type_product').change(() => {
         displayFieldsManager.refresh();
       });
 
@@ -379,10 +371,10 @@ const formCategory = (function () {
     init() {
       const that = this;
       /** remove all categories from selector, except pre defined */
-      $('#add-categories button.save').on('click', () => {
+      $('#add-categories button.save').click(() => {
         send(that);
       });
-      $('#add-categories button[type="reset"]').on('click', () => {
+      $('#add-categories button[type="reset"]').click(() => {
         that.hideBlock();
       });
     },
@@ -495,7 +487,7 @@ const supplier = (function () {
     init() {
       /** On supplier select, hide or show the default supplier selector */
       const supplierInput = $('#form_step6_suppliers input[name="form[step6][suppliers][]"]');
-      supplierInput.on('change', function () {
+      supplierInput.change(function () {
         supplierInputManage($(this));
         supplierCombinations.refresh();
       });
@@ -551,6 +543,22 @@ window.stock = (function () {
         }
       });
 
+      /** if GSA : Show depends_on_stock choice only if advanced_stock_management checked */
+      $('#form_step3_advanced_stock_management').on('change', (e) => {
+        if (e.target.checked) {
+          $('#depends_on_stock_div').show();
+        } else {
+          $('#depends_on_stock_div').hide();
+        }
+        warehouseCombinations.refresh();
+      });
+
+      /** if GSA activation change on 'depend on stock', update quantities fields */
+      // eslint-disable-next-line
+      $('#form_step3_depends_on_stock_0, #form_step3_depends_on_stock_1, #form_step3_advanced_stock_management').on('change', (e) => {
+        displayFieldsManager.refresh();
+        warehouseCombinations.refresh();
+      });
       displayFieldsManager.refresh();
     },
   };
@@ -576,6 +584,63 @@ window.nav = (function () {
           window.location.hash = e.target.hash.replace('#', `#${prefix}`);
         }
       });
+    },
+  };
+}());
+
+/**
+ * Warehouse combination collection management (ASM only)
+ */
+window.warehouseCombinations = (function () {
+  const idProduct = $('#form_id_product').val();
+  const collectionHolder = $('#warehouse_combination_collection');
+
+  return {
+    init() {
+      // toggle all button action
+      $(document).on('click', 'div[id^="warehouse_combination_"] button.check_all_warehouse', function () {
+        const checkboxes = $(this).closest('div[id^="warehouse_combination_"]')
+          .find('input[type="checkbox"][id$="_activated"]');
+        checkboxes.prop('checked', checkboxes.filter(':checked').length === 0);
+      });
+      // location disablation depending on 'stored' checkbox
+      // eslint-disable-next-line
+      $(document).on('change', 'div[id^="warehouse_combination_"] input[id^="form_step4_warehouse_combination_"][id$="_activated"]', function () {
+        const checked = $(this).prop('checked');
+        const location = $(this).closest('div.form-group')
+          .find('input[id^="form_step4_warehouse_combination_"][id$="_location"]');
+        location.prop('disabled', !checked);
+        if (!checked) {
+          location.val('');
+        }
+      });
+      this.locationDisabler();
+    },
+    locationDisabler() {
+      // eslint-disable-next-line
+      $('div[id^="warehouse_combination_"] input[id^="form_step4_warehouse_combination_"][id$="_activated"]', collectionHolder).each(function () {
+        const checked = $(this).prop('checked');
+        const location = $(this).closest('div.form-group')
+          .find('input[id^="form_step4_warehouse_combination_"][id$="_location"]');
+        location.prop('disabled', !checked);
+      });
+    },
+    refresh() {
+      const show = $('input#form_step3_advanced_stock_management:checked').length > 0;
+
+      if (show) {
+        const url = collectionHolder.attr('data-url').replace(/\/\d+(?=\?.*)/, `/${idProduct}`);
+        $.ajax({
+          url,
+          success(response) {
+            collectionHolder.empty().append(response);
+            collectionHolder.show();
+            warehouseCombinations.locationDisabler();
+          },
+        });
+      } else {
+        collectionHolder.hide();
+      }
     },
   };
 }());
@@ -805,19 +870,19 @@ window.form = (function () {
         step1CheckBox.prop('checked', !step1CheckBox.is(':checked'));
       });
 
-      elem.on('submit', (event) => {
+      elem.submit((event) => {
         replaceBadLocaleCharacters();
         event.preventDefault();
         send();
       });
 
-      elem.find('#form_switch_language').on('change', (event) => {
+      elem.find('#form_switch_language').change((event) => {
         event.preventDefault();
         switchLanguage(event.target.value);
       });
 
       /** on save with duplicate|new|preview */
-      $('.btn-submit, .preview', elem).on('click', function (event) {
+      $('.btn-submit, .preview', elem).click(function (event) {
         event.preventDefault();
         send($(this).attr('data-redirect'), $(this).attr('target'));
       });
@@ -845,7 +910,7 @@ window.form = (function () {
       });
 
       /** on delete product */
-      $('.product-footer .delete', elem).on('click', function (e) {
+      $('.product-footer .delete', elem).click(function (e) {
         e.preventDefault();
         const that = $(this);
         modalConfirmation.create(translate_javascripts['Are you sure you want to delete this item?'], null, {
@@ -1041,7 +1106,7 @@ window.virtualProduct = (function () {
         }
       });
 
-      $('#form_step3_virtual_product_file').on('change', function () {
+      $('#form_step3_virtual_product_file').change(function () {
         if ($(this)[0].files !== undefined) {
           const {files} = $(this)[0];
           let name = '';
@@ -1064,7 +1129,7 @@ window.virtualProduct = (function () {
       }
 
       /** delete attached file */
-      $('#form_step3_virtual_product_file_details .delete').on('click', function (e) {
+      $('#form_step3_virtual_product_file_details .delete').click(function (e) {
         e.preventDefault();
         const $deleteButton = $(this);
 
@@ -1076,7 +1141,7 @@ window.virtualProduct = (function () {
       });
 
       /** save virtual product */
-      $('#form_step3_virtual_product_save').on('click', function () {
+      $('#form_step3_virtual_product_save').click(function () {
         const that = $(this);
         const data = new FormData();
 
@@ -1157,7 +1222,7 @@ window.attachmentProduct = (function () {
       const buttonSave = $('#form_step6_attachment_product_add');
       const buttonCancel = $('#form_step6_attachment_product_cancel');
 
-      buttonCancel.on('click', () => {
+      buttonCancel.click(() => {
         resetAttachmentForm();
       });
 
@@ -1173,7 +1238,7 @@ window.attachmentProduct = (function () {
 
       /** add attachment */
       // eslint-disable-next-line
-      $('#form_step6_attachment_product_add').on('click', function () {
+      $('#form_step6_attachment_product_add').click(function () {
         const data = new FormData();
 
         if ($('#form_step6_attachment_product_file')[0].files[0]) {
@@ -1675,7 +1740,7 @@ window.priceCalculation = (function () {
 
     init() {
       /** on update tax recalculate tax include price */
-      taxElem.on('change', () => {
+      taxElem.change(() => {
         if (reTaxElem.val() !== taxElem.val()) {
           reTaxElem.val(taxElem.val()).trigger('change');
         }
@@ -1684,12 +1749,12 @@ window.priceCalculation = (function () {
         priceTTCElem.change();
       });
 
-      reTaxElem.on('change', () => {
+      reTaxElem.change(() => {
         taxElem.val(reTaxElem.val()).trigger('change');
       });
 
       /** update without tax price and shortcut price field on change */
-      $('#form_step1_price_shortcut, #form_step2_price').on('keyup', function () {
+      $('#form_step1_price_shortcut, #form_step2_price').keyup(function () {
         const price = priceCalculation.normalizePrice($(this).val());
 
         if ($(this).attr('id') === 'form_step1_price_shortcut') {
@@ -1702,7 +1767,7 @@ window.priceCalculation = (function () {
       });
 
       /** update HT price and shortcut price field on change */
-      $('#form_step1_price_ttc_shortcut, #form_step2_price_ttc').on('keyup', function () {
+      $('#form_step1_price_ttc_shortcut, #form_step2_price_ttc').keyup(function () {
         const price = priceCalculation.normalizePrice($(this).val());
 
         if ($(this).attr('id') === 'form_step1_price_ttc_shortcut') {
@@ -1715,7 +1780,7 @@ window.priceCalculation = (function () {
       });
 
       /** on price change, update final retails prices */
-      $('#form_step2_price, #form_step2_price_ttc').on('change', () => {
+      $('#form_step2_price, #form_step2_price_ttc').change(() => {
         const taxExcludedPrice = priceCalculation.normalizePrice($('#form_step2_price').val());
         const taxIncludedPrice = priceCalculation.normalizePrice($('#form_step2_price_ttc').val());
 
@@ -1728,7 +1793,7 @@ window.priceCalculation = (function () {
       });
 
       /** update HT price and shortcut price field on change */
-      $('#form_step2_ecotax').on('keyup', () => {
+      $('#form_step2_ecotax').keyup(() => {
         priceCalculation.taxExclude();
       });
 
@@ -1809,8 +1874,7 @@ window.priceCalculation = (function () {
           ps_round(price - getEcotaxTaxIncluded(),
             displayPricePrecision,
           ),
-          rates,
-          computationMethod),
+          rates, computationMethod),
         displayPricePrecision,
       );
     },
@@ -2147,14 +2211,7 @@ window.seo = (function () {
 
   /** Hide or show the input product selector */
   function hideShowRedirectToProduct() {
-    redirectTypeValue = redirectTypeElem.val();
-    if (redirectTypeValue === '404'
-      || redirectTypeValue === '410'
-      || redirectTypeValue === 'default'
-      || redirectTypeValue === '200-displayed'
-      || redirectTypeValue === '404-displayed'
-      || redirectTypeValue === '410-displayed'
-    ) {
+    if (redirectTypeElem.val() === '404') {
       $('#id-product-redirected').hide();
     } else {
       updateRemoteUrl();
@@ -2197,18 +2254,18 @@ window.seo = (function () {
       updateRemoteUrl();
 
       /** On redirect type select change */
-      redirectTypeElem.on('change', () => {
+      redirectTypeElem.change(() => {
         productRedirect.find('#form_step5_id_type_redirected-data').html('');
         hideShowRedirectToProduct();
       });
 
       /** On product title change, update friendly URL */
-      $('#form_step1_names.friendly-url-force-update input').on('keyup', function () {
+      $('#form_step1_names.friendly-url-force-update input').keyup(function () {
         updateFriendlyUrl($(this));
       });
 
       /** Reset all languages title to friendly url */
-      $('#seo-url-regenerate').on('click', () => {
+      $('#seo-url-regenerate').click(() => {
         $.each($('#form_step1_names input'), function () {
           updateFriendlyUrl($(this));
         });

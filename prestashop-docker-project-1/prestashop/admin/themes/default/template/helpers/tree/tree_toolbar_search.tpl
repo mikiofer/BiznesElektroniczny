@@ -32,10 +32,10 @@
 		placeholder="{l s='search...'}" />
 </div>
 
-{if isset($typeahead_source) && isset($id) && isset($name)}
+{if isset($typeahead_source) && isset($id)}
 
 <script type="text/javascript">
-	$(
+	$(document).ready(
 		function()
 		{
 			$("#{$id|escape:'html':'UTF-8'}").typeahead(
@@ -45,7 +45,7 @@
 				local: [{$typeahead_source}]
 			});
 
-			$("#{$id|escape:'html':'UTF-8'}").on('keypress', function( event ) {
+			$("#{$id|escape:'html':'UTF-8'}").keypress(function( event ) {
 				if ( event.which == 13 ) {
 					event.stopPropagation();
 				}

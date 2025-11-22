@@ -43,7 +43,7 @@
 	{if $input['type'] == 'group_discount_category'}
 	<div {if !$form_id}class="hide"{/if}>
 		<script type="text/javascript">
-		$(function() {
+		$(document).ready(function() {
 			$("#group_discount_category").fancybox({
 				beforeLoad: function () {
 					$('#group_discount_category_fancybox').show();
@@ -81,7 +81,7 @@
 				return;
 			$.ajax({
 				type:"POST",
-				url: "index.php",
+				url: "ajax-tab.php",
 				async: true,
 				dataType: "json",
 				data : {
@@ -171,12 +171,12 @@
 	{elseif $input['type'] == 'modules'}
 	<div {if !$form_id}class="hide"{/if}>
 		<script type="text/javascript">
-			$(function() {
-				$('#authorized-modules').find('[value="0"]').on('click', function() {
+			$(document).ready(function() {
+				$('#authorized-modules').find('[value="0"]').click(function() {
 					$(this).parent().parent().find('input[type=hidden]').attr('name', 'modulesBoxUnauth[]');
 				});
 
-				$('#authorized-modules').find('[value="1"]').on('click', function() {
+				$('#authorized-modules').find('[value="1"]').click(function() {
 					$(this).parent().parent().find('input[type=hidden]').attr('name', 'modulesBoxAuth[]');
 				});
 			});

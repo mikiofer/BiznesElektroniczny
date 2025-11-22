@@ -57,11 +57,11 @@
 
 
 	<script type="text/javascript">
-	$(function(){
-		$('#move_to_right').on('click', function(){
+	$(document).ready(function(){
+		$('#move_to_right').click(function(){
 			return !$('#select_left option:selected').remove().appendTo('#select_right');
 		})
-		$('#move_to_left').on('click', function(){
+		$('#move_to_left').click(function(){
 			return !$('#select_right option:selected').remove().appendTo('#select_left');
 		});
 		$(document).on('dblclick', '#select_left option', function(e) {
@@ -71,7 +71,7 @@
 			$(this).remove().appendTo('#select_left');
 		});
 	});
-	$('#tag_form').on('submit', function()
+	$('#tag_form').submit(function()
 	{
 		$('#select_right option').each(function(i){
 			$(this).prop('selected', 'selected');

@@ -15,8 +15,8 @@ $chosen-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
 $chosen-drop-border: $gray-light;
 $chosen-drop-box-shadow: 0 8px 8px rgba(0, 0, 0, 0.25);
 $chosen-drop-zindex: 1060;
-$chosen-focus-border: var(--#{$cdk}blue-500);
-$chosen-focus-box-shadow: none;
+$chosen-focus-border: rgba(82, 168, 236, 0.8);
+$chosen-focus-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(82, 168, 236, 0.6);
 $chosen-focus-transition: border linear 0.2s, box-shadow linear 0.2s;
 $chosen-height: $input-height-base;
 $chosen-multi-height: $input-height-base + 6px;
@@ -270,16 +270,17 @@ $chosen-sprite-path: "../img/chosen-sprite.png";
 .chosen-container-multi {
   .chosen-choices {
     position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--#{$cdk}size-8);
     height: auto !important;
-    padding: var(--#{$cdk}size-8);
+    height: 1%;
+    padding: 0;
     margin: 0;
     overflow: hidden;
     cursor: text;
     background-color: $chosen-background;
     border: 1px solid $chosen-border;
+    @include border-top-radius($chosen-multi-border-radius);
+    @include border-bottom-radius($chosen-multi-border-radius);
+    @include box-shadow($chosen-box-shadow);
 
     li {
       list-style: none;
@@ -292,9 +293,9 @@ $chosen-sprite-path: "../img/chosen-sprite.png";
       white-space: nowrap;
 
       input {
-        height: var(--#{$cdk}size-24);
-        padding: var(--#{$cdk}size-4);
-        margin: 0 !important;
+        height: $chosen-multi-height - 8px;
+        padding: 4px;
+        margin: 0;
         color: $gray;
         background: transparent !important;
         border: 0 !important;
@@ -309,44 +310,30 @@ $chosen-sprite-path: "../img/chosen-sprite.png";
 
     .search-choice {
       position: relative;
-      padding: var(--#{$cdk}size-2) var(--#{$cdk}size-24) var(--#{$cdk}size-2) var(--#{$cdk}size-8);
-      margin: 0;
-      font-size: var(--#{$cdk}size-12);
-      font-weight: 700;
-      line-height: var(--#{$cdk}size-18);
+      line-height: 13px;
       color: $gray-dark;
       cursor: default;
-      background-color: var(--#{$cdk}primary-300);
+      background-color: $gray-lighter;
       -webkit-background-clip: padding-box;
       -moz-background-clip: padding;
       background-clip: padding-box;
-      border: none;
+      border: 1px solid $chosen-border;
+      @include margin(6px, 0, 3px, 5px);
+      @include padding(3px, 20px, 3px, 5px);
       @include border-top-radius($chosen-border-radius);
       @include border-bottom-radius($chosen-border-radius);
-
-      &:first-child {
-        margin-left: 0;
-      }
-
-      &:last-child {
-        margin-right: 0;
-      }
-
-      span {
-        display: inline-block;
-        vertical-align: middle;
-      }
+      @include gradient-vertical(#ffffff, $gray-lighter);
+      @include box-shadow($chosen-box-shadow);
 
       .search-choice-close {
         position: absolute;
-        top: 50%;
-        right: var(--#{$cdk}size-8);
+        top: 5px;
         display: block;
-        width: var(--#{$cdk}size-10);
-        height: var(--#{$cdk}size-10);
-        font-size: 0;
+        width: 12px;
+        height: 10px;
+        font-size: 1px;
         background: url($chosen-sprite-path) right top no-repeat;
-        transform: translateY(-50%);
+        @include right(4px);
 
         &:hover {
           background-position: right -11px;
@@ -377,16 +364,14 @@ $chosen-sprite-path: "../img/chosen-sprite.png";
 
 .chosen-container-active {
   .chosen-single {
-    border: 1px solid var(--#{$cdk}primary-800);
-    outline: 2px solid $chosen-focus-border;
+    border: 1px solid $chosen-focus-border;
     @include box-shadow($chosen-focus-box-shadow);
     @include transition($chosen-focus-transition);
   }
 
   &.chosen-with-drop .chosen-single {
     background-color: $gray-lighter;
-    border: 1px solid var(--#{$cdk}primary-800);
-    outline: 2px solid $chosen-focus-border;
+    border: 1px solid $chosen-focus-border;
     @include box-shadow($chosen-focus-box-shadow);
     @include transition($chosen-focus-transition);
 
@@ -401,14 +386,13 @@ $chosen-sprite-path: "../img/chosen-sprite.png";
   }
 
   .chosen-choices {
-    border: 1px solid var(--#{$cdk}primary-800);
-    outline: 2px solid $chosen-focus-border;
+    border: 1px solid $chosen-focus-border;
     @include border-bottom-radius(0);
     @include box-shadow($chosen-focus-box-shadow);
     @include transition($chosen-focus-transition);
 
     .search-field input {
-      color: var(--#{$cdk}primary-800) !important;
+      color: #111 !important;
     }
   }
 }

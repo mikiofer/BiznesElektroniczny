@@ -44,8 +44,8 @@
 	{else}
 		{if $input.type == 'select' && $input.name == 'id_category'}
 			<script type="text/javascript">
-				$(function(){
-					$('#id_category').on('change', function(){
+				$(document).ready(function(){
+					$('#id_category').change(function(){
 						doAdminAjax(
 							{
 							ajax: '1',
@@ -136,8 +136,8 @@
 	{foreach $ids_category as $key => $id_category}
 		ids_category[{$key}] = {$id_category};
 	{/foreach}
-	$(function() {
-		$('input[name=useImportData]').on('click', function()	{
+	$(document).ready(function() {
+		$('input[name=useImportData]').click(function()	{
 			if ($(this).attr('id') == 'useImportData_on')
 			{
 				$('input[name^="importData["]').prop('checked', true);
@@ -149,7 +149,7 @@
 				$('#shop_list, #data_list').slideUp('slow');
 			}
 		});
-		$('#id_category, #importFromShop').on('change', function(){
+		$('#id_category, #importFromShop').change(function(){
 			shop_id = $('#importFromShop').val();
 			category_id = $('#id_category').val();
 			if (ids_category[shop_id] != category_id)

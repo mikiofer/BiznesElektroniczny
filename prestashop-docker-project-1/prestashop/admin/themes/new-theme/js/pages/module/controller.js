@@ -38,22 +38,25 @@ class AdminModuleController {
    * @memberof AdminModule
    */
   constructor(moduleCardController) {
-    this.eventEmitter = window.prestashop.component.EventEmitter;
     this.moduleCardController = moduleCardController;
 
     this.DEFAULT_MAX_RECENTLY_USED = 10;
+    this.DEFAULT_MAX_PER_CATEGORIES = 6;
+    this.DISPLAY_GRID = 'grid';
     this.DISPLAY_LIST = 'list';
     this.CATEGORY_RECENTLY_USED = 'recently-used';
 
-    this.currentDisplay = this.DISPLAY_LIST;
+    this.currentCategoryDisplay = {};
+    this.currentDisplay = '';
     this.isCategoryGridDisplayed = false;
     this.currentTagsList = [];
-    this.currentCategoryFilter = null;
-    this.currentModuleStatusFilter = null;
+    this.currentRefCategory = null;
+    this.currentRefStatus = null;
+    this.currentSorting = null;
+    this.baseAddonsUrl = 'https://addons.prestashop.com/';
     this.pstaggerInput = null;
     this.lastBulkAction = null;
     this.isUploadStarted = false;
-    this.findModuleUsed = false;
 
     this.recentlyUsedSelector = '#module-recently-used-list .modules-list';
 
@@ -63,16 +66,28 @@ class AdminModuleController {
      * @type {Array}
      */
     this.modulesList = [];
+    this.addonsCardGrid = null;
+    this.addonsCardList = null;
 
     this.moduleShortList = '.module-short-list';
+    // See more & See less selector
+    this.seeMoreSelector = '.see-more';
+    this.seeLessSelector = '.see-less';
 
     // Selectors into vars to make it easier to change them while keeping same code logic
+    this.moduleItemGridSelector = '.module-item-grid';
     this.moduleItemListSelector = '.module-item-list';
     this.categorySelectorLabelSelector = '.module-category-selector-label';
     this.categorySelector = '.module-category-selector';
     this.categoryItemSelector = '.module-category-menu';
+    this.addonsLoginButtonSelector = '#addons_login_btn';
     this.categoryResetBtnSelector = '.module-category-reset';
     this.moduleInstallBtnSelector = 'input.module-install-btn';
+    this.moduleSortingDropdownSelector = '.module-sorting-author select';
+    this.categoryGridSelector = '#modules-categories-grid';
+    this.categoryGridItemSelector = '.module-category-item';
+    this.addonItemGridSelector = '.module-addons-item-grid';
+    this.addonItemListSelector = '.module-addons-item-list';
 
     // Upgrade All selectors
     this.upgradeAllSource = '.module_action_menu_upgrade_all';
@@ -86,23 +101,36 @@ class AdminModuleController {
     this.bulkActionDropDownSelector = '.module-bulk-actions';
     this.bulkItemSelector = '.module-bulk-menu';
     this.bulkActionCheckboxListSelector = '.module-checkbox-bulk-list input';
+    this.bulkActionCheckboxGridSelector = '.module-checkbox-bulk-grid input';
     this.checkedBulkActionListSelector = `${this.bulkActionCheckboxListSelector}:checked`;
+    this.checkedBulkActionGridSelector = `${this.bulkActionCheckboxGridSelector}:checked`;
     this.bulkActionCheckboxSelector = '#module-modal-bulk-checkbox';
     this.bulkConfirmModalSelector = '#module-modal-bulk-confirm';
     this.bulkConfirmModalActionNameSelector = '#module-modal-bulk-confirm-action-name';
     this.bulkConfirmModalListSelector = '#module-modal-bulk-confirm-list';
     this.bulkConfirmModalAckBtnSelector = '#module-modal-confirm-bulk-ack';
 
+    // Placeholders
+    this.placeholderGlobalSelector = '.module-placeholders-wrapper';
+    this.placeholderFailureGlobalSelector = '.module-placeholders-failure';
+    this.placeholderFailureMsgSelector = '.module-placeholders-failure-msg';
+    this.placeholderFailureRetryBtnSelector = '#module-placeholders-failure-retry';
+
     // Module's statuses selectors
     this.statusSelectorLabelSelector = '.module-status-selector-label';
     this.statusItemSelector = '.module-status-menu';
     this.statusResetBtnSelector = '.module-status-reset';
 
-    // Selectors for Module Import
-    this.importModalBtnSelector = '#page-header-desc-configuration-add_module';
+    // Selectors for Module Import and Addons connect
+    this.addonsConnectModalBtnSelector = '#page-header-desc-configuration-addons_connect';
+    this.addonsLogoutModalBtnSelector = '#page-header-desc-configuration-addons_logout';
+    this.addonsImportModalBtnSelector = '#page-header-desc-configuration-add_module';
     this.dropZoneModalSelector = '#module-modal-import';
     this.dropZoneModalFooterSelector = '#module-modal-import .modal-footer';
     this.dropZoneImportZoneSelector = '#importDropzone';
+    this.addonsConnectModalSelector = '#module-modal-addons-connect';
+    this.addonsLogoutModalSelector = '#module-modal-addons-logout';
+    this.addonsConnectForm = '#addons-connect-form';
     this.moduleImportModalCloseBtn = '#module-modal-import-closing-cross';
     this.moduleImportStartSelector = '.module-import-start';
     this.moduleImportProcessingSelector = '.module-import-processing';
@@ -115,17 +143,25 @@ class AdminModuleController {
     this.moduleImportFailureMsgDetailsSelector = '.module-import-failure-details';
     this.moduleImportConfirmSelector = '.module-import-confirm';
 
+    this.initSortingDropdown();
     this.initBOEventRegistering();
+    this.initCurrentDisplay();
+    this.initSortingDisplaySwitch();
     this.initBulkDropdown();
     this.initSearchBlock();
     this.initCategorySelect();
+    this.initCategoriesGrid();
     this.initActionButtons();
+    this.initAddonsSearch();
+    this.initAddonsConnect();
     this.initAddModuleAction();
     this.initDropzone();
     this.initPageChangeProtection();
+    this.initPlaceholderMechanism();
     this.initFilterStatusDropdown();
     this.fetchModulesList();
     this.getNotificationsCount();
+    this.initializeSeeMore();
   }
 
   initFilterStatusDropdown() {
@@ -133,7 +169,7 @@ class AdminModuleController {
     const body = $('body');
     body.on('click', self.statusItemSelector, function () {
       // Get data from li DOM input
-      self.currentModuleStatusFilter = parseInt($(this).data('status-ref'), 10);
+      self.currentRefStatus = parseInt($(this).data('status-ref'), 10);
       // Change dropdown label to set it to the current status' displayname
       $(self.statusSelectorLabelSelector).text($(this).text());
       $(self.statusResetBtnSelector).show();
@@ -143,7 +179,7 @@ class AdminModuleController {
     body.on('click', self.statusResetBtnSelector, function () {
       $(self.statusSelectorLabelSelector).text($(this).text());
       $(this).hide();
-      self.currentModuleStatusFilter = null;
+      self.currentRefStatus = null;
       self.updateModuleVisibility();
     });
   }
@@ -152,10 +188,10 @@ class AdminModuleController {
     const self = this;
     const body = $('body');
 
-    body.on('click', this.bulkActionCheckboxListSelector, () => {
+    body.on('click', self.getBulkCheckboxesSelector(), () => {
       const selector = $(self.bulkActionDropDownSelector);
 
-      if ($(self.checkedBulkActionListSelector).length > 0) {
+      if ($(self.getBulkCheckboxesCheckedSelector()).length > 0) {
         selector.closest('.module-top-menu-item').removeClass('disabled');
       } else {
         selector.closest('.module-top-menu-item').addClass('disabled');
@@ -163,7 +199,7 @@ class AdminModuleController {
     });
 
     body.on('click', self.bulkItemSelector, function initializeBodyChange() {
-      if ($(self.checkedBulkActionListSelector).length === 0) {
+      if ($(self.getBulkCheckboxesCheckedSelector()).length === 0) {
         $.growl.warning({
           message: window.translate_javascripts['Bulk Action - One module minimum'],
         });
@@ -172,7 +208,10 @@ class AdminModuleController {
 
       self.lastBulkAction = $(this).data('ref');
       const modulesListString = self.buildBulkActionModuleList();
-      const actionString = $(this).data('display-name').toLowerCase();
+      const actionString = $(this)
+        .find(':checked')
+        .text()
+        .toLowerCase();
       $(self.bulkConfirmModalListSelector).html(modulesListString);
       $(self.bulkConfirmModalActionNameSelector).text(actionString);
 
@@ -194,68 +233,17 @@ class AdminModuleController {
   }
 
   initBOEventRegistering() {
-    this.eventEmitter.on('Module Enabled', (context) => this.onModuleDisabled(context));
-    this.eventEmitter.on('Module Disabled', (context) => this.onModuleDisabled(context));
-    this.eventEmitter.on('Module Uninstalled', (context) => this.installHandler(context));
-    this.eventEmitter.on('Module Delete', (context) => this.onModuleDelete(context));
-    this.eventEmitter.on('Module Installed', (context) => this.installHandler(context));
+    window.BOEvent.on('Module Disabled', this.onModuleDisabled, this);
+    window.BOEvent.on('Module Uninstalled', this.updateTotalResults, this);
   }
 
-  installHandler(event) {
-    this.updateModuleStatus(event);
-    this.updateModuleVisibility();
-  }
-
-  /**
-   * Updates the modulesList object
-   *
-   * @param event a DOM element that contains module data such as id, name, version...
-   */
-  updateModuleStatus(event) {
-    this.modulesList = this.modulesList.map((module) => {
-      const moduleElement = $(event);
-
-      if ((moduleElement.data('tech-name') === module.techName)
-      && (moduleElement.data('version') !== undefined)) {
-        const newModule = {
-          domObject: moduleElement,
-          id: moduleElement.data('id'),
-          name: moduleElement.data('name').toLowerCase(),
-          scoring: parseFloat(moduleElement.data('scoring')),
-          logo: moduleElement.data('logo'),
-          author: moduleElement.data('author').toLowerCase(),
-          version: moduleElement.data('version'),
-          description: moduleElement.data('description').toLowerCase(),
-          techName: moduleElement.data('tech-name').toLowerCase(),
-          childCategories: moduleElement.data('child-categories'),
-          categories: String(moduleElement.data('categories')).toLowerCase(),
-          type: moduleElement.data('type'),
-          price: parseFloat(moduleElement.data('price')),
-          active: parseInt(moduleElement.data('active'), 10),
-          installed: moduleElement.data('installed') === 1,
-          access: moduleElement.data('last-access'),
-          display: this.DISPLAY_LIST,
-          container: module.container,
-        };
-
-        return newModule;
-      }
-
-      return module;
-    });
-  }
-
-  onModuleDisabled(event) {
+  onModuleDisabled() {
     const self = this;
-    self.updateModuleStatus(event);
-    $('.modules-list').each(() => {
-      self.updateModuleVisibility();
-    });
-  }
+    self.getModuleItemSelector();
 
-  onModuleDelete(event) {
-    this.modulesList = this.modulesList.filter((value) => value.techName !== $(event).data('tech-name'));
-    this.installHandler(event);
+    $('.modules-list').each(() => {
+      self.updateTotalResults();
+    });
   }
 
   initPlaceholderMechanism() {
@@ -349,9 +337,8 @@ class AdminModuleController {
           type: $this.data('type'),
           price: parseFloat($this.data('price')),
           active: parseInt($this.data('active'), 10),
-          installed: $this.data('installed') === 1,
           access: $this.data('last-access'),
-          display: self.DISPLAY_LIST,
+          display: $this.hasClass('module-item-list') ? self.DISPLAY_LIST : self.DISPLAY_GRID,
           container,
         });
 
@@ -361,7 +348,59 @@ class AdminModuleController {
       });
     });
 
+    self.addonsCardGrid = $(this.addonItemGridSelector);
+    self.addonsCardList = $(this.addonItemListSelector);
     self.updateModuleVisibility();
+    $('body').trigger('moduleCatalogLoaded');
+  }
+
+  /**
+   * Prepare sorting
+   *
+   */
+  updateModuleSorting() {
+    const self = this;
+
+    if (!self.currentSorting) {
+      return;
+    }
+
+    // Modules sorting
+    let order = 'asc';
+    let key = self.currentSorting;
+    const splittedKey = key.split('-');
+
+    if (splittedKey.length > 1) {
+      key = splittedKey[0];
+      if (splittedKey[1] === 'desc') {
+        order = 'desc';
+      }
+    }
+
+    const currentCompare = (a, b) => {
+      let aData = a[key];
+      let bData = b[key];
+
+      if (key === 'access') {
+        aData = new Date(aData).getTime();
+        bData = new Date(bData).getTime();
+        aData = Number.isNaN(aData) ? 0 : aData;
+        bData = Number.isNaN(bData) ? 0 : bData;
+        if (aData === bData) {
+          return b.name.localeCompare(a.name);
+        }
+      }
+
+      if (aData < bData) return -1;
+      if (aData > bData) return 1;
+
+      return 0;
+    };
+
+    self.modulesList.sort(currentCompare);
+    if (order === 'desc') {
+      self.modulesList.reverse();
+    }
   }
 
   updateModuleContainerDisplay() {
@@ -372,9 +411,8 @@ class AdminModuleController {
       const nbModulesInContainer = container.find('.module-item').length;
 
       if (
-        (self.currentCategoryFilter
-          && self.currentCategoryFilter !== String(container.find('.modules-list').data('name')))
-        || (self.currentModuleStatusFilter !== null && nbModulesInContainer === 0)
+        (self.currentRefCategory && self.currentRefCategory !== String(container.find('.modules-list').data('name')))
+        || (self.currentRefStatus !== null && nbModulesInContainer === 0)
         || (nbModulesInContainer === 0
           && String(container.find('.modules-list').data('name')) === self.CATEGORY_RECENTLY_USED)
         || (self.currentTagsList.length > 0 && nbModulesInContainer === 0)
@@ -384,14 +422,18 @@ class AdminModuleController {
       }
 
       container.show();
+      container
+        .find(`${self.seeMoreSelector}, ${self.seeLessSelector}`)
+        .toggle(nbModulesInContainer >= self.DEFAULT_MAX_PER_CATEGORIES);
     });
   }
 
   updateModuleVisibility() {
     const self = this;
 
-    // Remove recently used and modules list if we are on the modules page and no read more modal is opened
-    if (self.isModulesPage() && !self.isReadMoreModalOpened()) {
+    self.updateModuleSorting();
+
+    if (self.isModulesPage()) {
       $(self.recentlyUsedSelector)
         .find('.module-item')
         .remove();
@@ -406,19 +448,10 @@ class AdminModuleController {
     let moduleCategory;
     let tagExists;
     let newValue;
-
-    const paramsUrl = (new URL(document.location)).searchParams;
-    const findModule = paramsUrl.get('find');
-
-    if (findModule && self.findModuleUsed !== true) {
-      self.currentTagsList.push(findModule);
-      self.findModuleUsed = true;
-    } else if (findModule) {
-      self.currentTagsList.pop(findModule);
-    }
+    let defaultMax;
 
     const modulesListLength = self.modulesList.length;
-    let counter = 0;
+    const counter = {};
     const checkTag = (index, value) => {
       newValue = value.toLowerCase();
       tagExists
@@ -430,63 +463,69 @@ class AdminModuleController {
 
     for (let i = 0; i < modulesListLength; i += 1) {
       currentModule = self.modulesList[i];
-      isVisible = true;
+      if (currentModule.display === self.currentDisplay) {
+        isVisible = true;
 
-      // Check if we are displaying normal categories or the recently used list
-      moduleCategory = self.currentCategoryFilter === self.CATEGORY_RECENTLY_USED
-        ? self.CATEGORY_RECENTLY_USED
-        : currentModule.categories;
+        moduleCategory = self.currentRefCategory === self.CATEGORY_RECENTLY_USED
+          ? self.CATEGORY_RECENTLY_USED
+          : currentModule.categories;
 
-      // If category filter is set, we display only modules matching the current category
-      if (self.currentCategoryFilter !== null) {
-        isVisible &= moduleCategory === self.currentCategoryFilter;
-      }
+        // Check for same category
+        if (self.currentRefCategory !== null) {
+          isVisible &= moduleCategory === self.currentRefCategory;
+        }
 
-      // Check if the module status filter is enabled and hide modules that
-      // don't match it.
-      if (self.currentModuleStatusFilter !== null) {
-        isVisible &= (
-          (
-            currentModule.active === self.currentModuleStatusFilter
-              && currentModule.installed === true
-          )
-            || (
-              currentModule.installed === false
-                && self.currentModuleStatusFilter === 2
-            ) || (
-            currentModule.installed === true
-                && self.currentModuleStatusFilter === 3
-          )
-        );
-      }
+        // Check for same status
+        if (self.currentRefStatus !== null) {
+          isVisible &= currentModule.active === self.currentRefStatus;
+        }
 
-      // Check for tag list
-      if (self.currentTagsList.length) {
-        tagExists = false;
-        $.each(self.currentTagsList, checkTag);
-        isVisible &= tagExists;
-      }
+        // Check for tag list
+        if (self.currentTagsList.length) {
+          tagExists = false;
+          $.each(self.currentTagsList, checkTag);
+          isVisible &= tagExists;
+        }
 
-      // If we are not searching for a module, we need to manage module
-      // visibility within categories. If it's the recently used category,
-      // we will hide the module if we already reached the max limit.
-      if (!self.currentTagsList.length && moduleCategory === self.CATEGORY_RECENTLY_USED
-        && counter >= self.DEFAULT_MAX_RECENTLY_USED) {
-        isVisible = false;
-      }
+        /**
+         * If list display without search we must display only the first 5 modules
+         */
+        if (self.currentDisplay === self.DISPLAY_LIST && !self.currentTagsList.length) {
+          if (self.currentCategoryDisplay[moduleCategory] === undefined) {
+            self.currentCategoryDisplay[moduleCategory] = false;
+          }
 
-      // If visible, display (Thx captain obvious)
-      if (isVisible) {
-        counter += 1;
-        if (self.currentCategoryFilter === self.CATEGORY_RECENTLY_USED) {
-          $(self.recentlyUsedSelector).append(currentModule.domObject);
-        } else {
-          currentModule.container.append(currentModule.domObject);
+          if (!counter[moduleCategory]) {
+            counter[moduleCategory] = 0;
+          }
+
+          defaultMax = moduleCategory === self.CATEGORY_RECENTLY_USED
+            ? self.DEFAULT_MAX_RECENTLY_USED
+            : self.DEFAULT_MAX_PER_CATEGORIES;
+          if (counter[moduleCategory] >= defaultMax) {
+            isVisible &= self.currentCategoryDisplay[moduleCategory];
+          }
+
+          counter[moduleCategory] += 1;
+        }
+
+        // If visible, display (Thx captain obvious)
+        if (isVisible) {
+          if (self.currentRefCategory === self.CATEGORY_RECENTLY_USED) {
+            $(self.recentlyUsedSelector).append(currentModule.domObject);
+          } else {
+            currentModule.container.append(currentModule.domObject);
+          }
         }
       }
     }
 
     self.updateModuleContainerDisplay();
+
+    if (self.currentTagsList.length) {
+      $('.modules-list').append(this.currentDisplay === self.DISPLAY_GRID ? this.addonsCardGrid : this.addonsCardList);
+    }
+
     self.updateTotalResults();
   }
 
@@ -506,8 +545,8 @@ class AdminModuleController {
   }
 
   buildBulkActionModuleList() {
-    const checkBoxesSelector = this.checkedBulkActionListSelector;
-    const moduleItemSelector = this.moduleItemListSelector;
+    const checkBoxesSelector = this.getBulkCheckboxesCheckedSelector();
+    const moduleItemSelector = this.getModuleItemSelector();
     let alreadyDoneFlag = 0;
     let htmlGenerated = '';
     let currentElement;
@@ -529,14 +568,50 @@ class AdminModuleController {
     return htmlGenerated;
   }
 
+  initAddonsConnect() {
+    const self = this;
+
+    // Make addons connect modal ready to be clicked
+    if ($(self.addonsConnectModalBtnSelector).attr('href') === '#') {
+      $(self.addonsConnectModalBtnSelector).attr('data-toggle', 'modal');
+      $(self.addonsConnectModalBtnSelector).attr('data-target', self.addonsConnectModalSelector);
+    }
+
+    if ($(self.addonsLogoutModalBtnSelector).attr('href') === '#') {
+      $(self.addonsLogoutModalBtnSelector).attr('data-toggle', 'modal');
+      $(self.addonsLogoutModalBtnSelector).attr('data-target', self.addonsLogoutModalSelector);
+    }
+
+    $('body').on('submit', self.addonsConnectForm, function initializeBodySubmit(event) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      $.ajax({
+        method: 'POST',
+        url: $(this).attr('action'),
+        dataType: 'json',
+        data: $(this).serialize(),
+        beforeSend: () => {
+          $(self.addonsLoginButtonSelector).show();
+          $('button.btn[type="submit"]', self.addonsConnectForm).hide();
+        },
+      }).done((response) => {
+        if (response.success === 1) {
+          window.location.reload();
+        } else {
+          $.growl.error({message: response.message});
+          $(self.addonsLoginButtonSelector).hide();
+          $('button.btn[type="submit"]', self.addonsConnectForm).fadeIn();
+        }
+      });
+    });
+  }
+
   initAddModuleAction() {
     const self = this;
-    const addModuleButton = $(`${self.importModalBtnSelector}, ${self.importModalBtnSelectorMobile}`);
-
-    if (addModuleButton.length) {
-      addModuleButton.attr('data-toggle', 'modal');
-      addModuleButton.attr('data-target', self.dropZoneModalSelector);
-    }
+    const addModuleButton = $(self.addonsImportModalBtnSelector);
+    addModuleButton.attr('data-toggle', 'modal');
+    addModuleButton.attr('data-target', self.dropZoneModalSelector);
   }
 
   initDropzone() {
@@ -625,6 +700,7 @@ class AdminModuleController {
       acceptedFiles: '.zip, .tar',
       // The name that will be used to transfer the file
       paramName: 'file_uploaded',
+      maxFilesize: 50, // can't be greater than 50Mb because it's an addons limitation
       uploadMultiple: false,
       addRemoveLinks: true,
       dictDefaultMessage: '',
@@ -635,7 +711,6 @@ class AdminModuleController {
        */
       timeout: 0,
       addedfile: () => {
-        $(`${self.moduleImportSuccessSelector}, ${self.moduleImportFailureSelector}`).hide();
         self.animateStartUpload();
       },
       processing: () => {
@@ -652,9 +727,6 @@ class AdminModuleController {
           if (typeof responseObject.module_name === 'undefined') responseObject.module_name = null;
 
           self.displayOnUploadDone(responseObject);
-
-          const elem = $(`<div data-tech-name="${responseObject.module_name}"></div>`);
-          this.eventEmitter.emit((responseObject.upgraded ? 'Module Upgraded' : 'Module Installed'), elem);
         }
         // State that we have finish the process to unlock some actions
         self.isUploadStarted = false;
@@ -696,6 +768,8 @@ class AdminModuleController {
           $(self.moduleImportSuccessConfigureBtnSelector).show();
         }
         $(self.moduleImportSuccessSelector).fadeIn();
+      } else if (typeof result.confirmation_subject !== 'undefined') {
+        self.displayPrestaTrustStep(result);
       } else {
         $(self.moduleImportFailureMsgDetailsSelector).html(result.msg);
         $(self.moduleImportFailureSelector).fadeIn();
@@ -715,6 +789,66 @@ class AdminModuleController {
       $(self.moduleImportFailureMsgDetailsSelector).html(message);
       $(self.moduleImportFailureSelector).fadeIn();
     });
+  }
+
+  /**
+   * If PrestaTrust needs to be confirmed, we ask for the confirmation
+   * modal content and we display it in the currently displayed one.
+   * We also generate the ajax call to trigger once we confirm we want to install
+   * the module.
+   *
+   * @param Previous server response result
+   */
+  displayPrestaTrustStep(result) {
+    const self = this;
+    const modal = self.moduleCardController.replacePrestaTrustPlaceholders(result);
+    const moduleName = result.module.attributes.name;
+
+    $(this.moduleImportConfirmSelector)
+      .html(modal.find('.modal-body').html())
+      .fadeIn();
+    $(this.dropZoneModalFooterSelector)
+      .html(modal.find('.modal-footer').html())
+      .fadeIn();
+
+    $(this.dropZoneModalFooterSelector)
+      .find('.pstrust-install')
+      .off('click')
+      .on('click', () => {
+        $(self.moduleImportConfirmSelector).hide();
+        $(self.dropZoneModalFooterSelector).html('');
+        self.animateStartUpload();
+
+        // Install ajax call
+        $.post(result.module.attributes.urls.install, {
+          'actionParams[confirmPrestaTrust]': '1',
+        })
+          .done((data) => {
+            self.displayOnUploadDone(data[moduleName]);
+          })
+          .fail((data) => {
+            self.displayOnUploadError(data[moduleName]);
+          })
+          .always(() => {
+            self.isUploadStarted = false;
+          });
+      });
+  }
+
+  getBulkCheckboxesSelector() {
+    return this.currentDisplay === this.DISPLAY_GRID
+      ? this.bulkActionCheckboxGridSelector
+      : this.bulkActionCheckboxListSelector;
+  }
+
+  getBulkCheckboxesCheckedSelector() {
+    return this.currentDisplay === this.DISPLAY_GRID
+      ? this.checkedBulkActionGridSelector
+      : this.checkedBulkActionListSelector;
+  }
+
+  getModuleItemSelector() {
+    return this.currentDisplay === this.DISPLAY_GRID ? this.moduleItemGridSelector : this.moduleItemListSelector;
   }
 
   /**
@@ -741,18 +875,85 @@ class AdminModuleController {
     });
   }
 
+  initAddonsSearch() {
+    const self = this;
+    $('body').on('click', `${self.addonItemGridSelector}, ${self.addonItemListSelector}`, () => {
+      let searchQuery = '';
+
+      if (self.currentTagsList.length) {
+        searchQuery = encodeURIComponent(self.currentTagsList.join(' '));
+      }
+
+      window.open(`${self.baseAddonsUrl}search.php?search_query=${searchQuery}`, '_blank');
+    });
+  }
+
+  initCategoriesGrid() {
+    const self = this;
+
+    $('body').on('click', this.categoryGridItemSelector, function initilaizeGridBodyClick(event) {
+      event.stopPropagation();
+      event.preventDefault();
+      const refCategory = $(this).data('category-ref');
+
+      // In case we have some tags we need to reset it !
+      if (self.currentTagsList.length) {
+        self.pstaggerInput.resetTags(false);
+        self.currentTagsList = [];
+      }
+      const menuCategoryToTrigger = $(`${self.categoryItemSelector}[data-category-ref="${refCategory}"]`);
+
+      if (!menuCategoryToTrigger.length) {
+        console.warn(`No category with ref (${refCategory}) seems to exist!`);
+        return false;
+      }
+
+      // Hide current category grid
+      if (self.isCategoryGridDisplayed === true) {
+        $(self.categoryGridSelector).fadeOut();
+        self.isCategoryGridDisplayed = false;
+      }
+
+      // Trigger click on right category
+      $(`${self.categoryItemSelector}[data-category-ref="${refCategory}"]`).click();
+      return true;
+    });
+  }
+
+  initCurrentDisplay() {
+    this.currentDisplay = this.currentDisplay === '' ? this.DISPLAY_LIST : this.DISPLAY_GRID;
+  }
+
+  initSortingDropdown() {
+    const self = this;
+
+    self.currentSorting = $(this.moduleSortingDropdownSelector)
+      .find(':checked')
+      .attr('value');
+    if (!self.currentSorting) {
+      self.currentSorting = 'access-desc';
+    }
+
+    $('body').on('change', self.moduleSortingDropdownSelector, function initializeBodySortingChange() {
+      self.currentSorting = $(this)
+        .find(':checked')
+        .attr('value');
+      self.updateModuleVisibility();
+    });
+  }
+
   doBulkAction(requestedBulkAction) {
     // This object is used to check if requested bulkAction is available and give proper
     // url segment to be called for it
     const forceDeletion = $('#force_bulk_deletion').prop('checked');
 
     const bulkActionToUrl = {
-      'bulk-install': 'install',
       'bulk-uninstall': 'uninstall',
       'bulk-disable': 'disable',
       'bulk-enable': 'enable',
+      'bulk-disable-mobile': 'disable_mobile',
+      'bulk-enable-mobile': 'enable_mobile',
       'bulk-reset': 'reset',
-      'bulk-delete': 'delete',
     };
 
     // Note no grid selector used yet since we do not needed it at dev time
@@ -766,7 +967,7 @@ class AdminModuleController {
     }
 
     // Loop over all checked bulk checkboxes
-    const bulkActionSelectedSelector = this.checkedBulkActionListSelector;
+    const bulkActionSelectedSelector = this.getBulkCheckboxesCheckedSelector();
     const bulkModuleAction = bulkActionToUrl[requestedBulkAction];
 
     if ($(bulkActionSelectedSelector).length <= 0) {
@@ -805,30 +1006,52 @@ class AdminModuleController {
       return;
     }
 
-    // Begin actions one after another
-    unstackModulesActions();
+    let modulesRequestedCountdown = actionMenuLinks.length - 1;
+    let spinnerObj = $('<button class="btn-primary-reverse onclick unbind spinner "></button>');
 
-    function requestModuleAction(actionMenuLink) {
-      if (self.moduleCardController.hasPendingRequest()) {
-        actionMenuLinks.push(actionMenuLink);
-        return;
-      }
+    if (actionMenuLinks.length > 1) {
+      // Loop through all the modules except the last one which waits for other
+      // requests and then call its request with cache clear enabled
+      $.each(actionMenuLinks, (index, actionMenuLink) => {
+        if (index >= actionMenuLinks.length - 1) {
+          return;
+        }
+        requestModuleAction(actionMenuLink, true, countdownModulesRequest);
+      });
+      // Display a spinner for the last module
+      const lastMenuLink = actionMenuLinks[actionMenuLinks.length - 1];
+      const actionMenuObj = lastMenuLink.closest(self.moduleCardController.moduleItemActionsSelector);
+      actionMenuObj.hide();
+      actionMenuObj.after(spinnerObj);
+    } else {
+      requestModuleAction(actionMenuLinks[0]);
+    }
 
+    function requestModuleAction(actionMenuLink, disableCacheClear, requestEndCallback) {
       self.moduleCardController.requestToController(
         bulkModuleAction,
         actionMenuLink,
         forceDeletion,
-        unstackModulesActions,
+        disableCacheClear,
+        requestEndCallback,
       );
     }
 
-    function unstackModulesActions() {
-      if (actionMenuLinks.length <= 0) {
-        return;
-      }
+    function countdownModulesRequest() {
+      modulesRequestedCountdown -= 1;
+      // Now that all other modules have performed their action WITHOUT cache clear, we
+      // can request the last module request WITH cache clear
+      if (modulesRequestedCountdown <= 0) {
+        if (spinnerObj) {
+          spinnerObj.remove();
+          spinnerObj = null;
+        }
 
-      const actionMenuLink = actionMenuLinks.shift();
-      requestModuleAction(actionMenuLink);
+        const lastMenuLink = actionMenuLinks[actionMenuLinks.length - 1];
+        const actionMenuObj = lastMenuLink.closest(self.moduleCardController.moduleItemActionsSelector);
+        actionMenuObj.fadeIn();
+        requestModuleAction(lastMenuLink);
+      }
     }
 
     function filterAllowedActions(actions) {
@@ -930,8 +1153,8 @@ class AdminModuleController {
     const body = $('body');
     body.on('click', self.categoryItemSelector, function initializeCategorySelectClick() {
       // Get data from li DOM input
-      self.currentCategoryFilter = $(this).data('category-ref');
-      self.currentCategoryFilter = self.currentCategoryFilter ? String(self.currentCategoryFilter).toLowerCase() : null;
+      self.currentRefCategory = $(this).data('category-ref');
+      self.currentRefCategory = self.currentRefCategory ? String(self.currentRefCategory).toLowerCase() : null;
       // Change dropdown label to set it to the current category's displayname
       $(self.categorySelectorLabelSelector).text($(this).data('category-display-name'));
       $(self.categoryResetBtnSelector).show();
@@ -946,7 +1169,7 @@ class AdminModuleController {
 
       $(self.categorySelectorLabelSelector).text(originalText);
       $(this).hide();
-      self.currentCategoryFilter = null;
+      self.currentRefCategory = null;
       self.updateModuleVisibility();
     });
   }
@@ -966,9 +1189,69 @@ class AdminModuleController {
       closingCross: true,
       context: self,
     });
+
+    $('body').on('click', '.module-addons-search-link', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      window.open($(this).attr('href'), '_blank');
+    });
+  }
+
+  /**
+   * Initialize display switching between List or Grid
+   */
+  initSortingDisplaySwitch() {
+    const self = this;
+
+    $('body').on('click', '.module-sort-switch', function switchSort() {
+      const switchTo = $(this).data('switch');
+      const isAlreadyDisplayed = $(this).hasClass('active-display');
+
+      if (typeof switchTo !== 'undefined' && isAlreadyDisplayed === false) {
+        self.switchSortingDisplayTo(switchTo);
+        self.currentDisplay = switchTo;
+      }
+    });
+  }
+
+  switchSortingDisplayTo(switchTo) {
+    if (switchTo !== this.DISPLAY_GRID && switchTo !== this.DISPLAY_LIST) {
+      console.error(`Can't switch to undefined display property "${switchTo}"`);
+      return;
+    }
+
+    $('.module-sort-switch').removeClass('module-sort-active');
+    $(`#module-sort-${switchTo}`).addClass('module-sort-active');
+    this.currentDisplay = switchTo;
+    this.updateModuleVisibility();
+  }
+
+  initializeSeeMore() {
+    const self = this;
+
+    $(`${self.moduleShortList} ${self.seeMoreSelector}`).on('click', function seeMore() {
+      self.currentCategoryDisplay[$(this).data('category')] = true;
+      $(this).addClass('d-none');
+      $(this)
+        .closest(self.moduleShortList)
+        .find(self.seeLessSelector)
+        .removeClass('d-none');
+      self.updateModuleVisibility();
+    });
+
+    $(`${self.moduleShortList} ${self.seeLessSelector}`).on('click', function seeMore() {
+      self.currentCategoryDisplay[$(this).data('category')] = false;
+      $(this).addClass('d-none');
+      $(this)
+        .closest(self.moduleShortList)
+        .find(self.seeMoreSelector)
+        .removeClass('d-none');
+      self.updateModuleVisibility();
+    });
   }
 
   updateTotalResults() {
+    const self = this;
     const replaceFirstWordBy = (element, value) => {
       const explodedText = element.text().split(' ');
       explodedText[0] = value;
@@ -993,16 +1276,21 @@ class AdminModuleController {
       replaceFirstWordBy($('.module-search-result-wording'), modulesCount);
 
       // eslint-disable-next-line
-      $(this.addonItemListSelector).toggle(modulesCount !== this.modulesList.length / 2);
+      const selectorToToggle =
+        self.currentDisplay === self.DISPLAY_LIST ? this.addonItemListSelector : this.addonItemGridSelector;
+      $(selectorToToggle).toggle(modulesCount !== this.modulesList.length / 2);
+
+      if (modulesCount === 0) {
+        $('.module-addons-search-link').attr(
+          'href',
+          `${this.baseAddonsUrl}search.php?search_query=${encodeURIComponent(this.currentTagsList.join(' '))}`,
+        );
+      }
     }
   }
 
   isModulesPage() {
     return $(this.upgradeContainer).length === 0 && $(this.notificationContainer).length === 0;
-  }
-
-  isReadMoreModalOpened() {
-    return $('.modal-read-more').is(':visible');
   }
 }
 

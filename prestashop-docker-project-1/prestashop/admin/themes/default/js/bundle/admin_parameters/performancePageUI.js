@@ -26,16 +26,19 @@ const PerformancePageUI = {
   displaySmartyCache() {
     const CACHE_ENABLED = '1';
     const smartyCacheSelected = document.querySelector('input[name="smarty[cache]"]:checked');
-    document.querySelectorAll('.smarty-cache-option').forEach((element) => {
-      element.classList.toggle('d-none', smartyCacheSelected.value !== CACHE_ENABLED);
-    });
-  },
-  displayDebugModeOptions() {
-    const DEBUG_MODE_ON = '1';
-    const debugModeOn = document.querySelector('input[name="debug_mode[debug_mode]"]:checked');
-    document.querySelectorAll('.debug-mode-option').forEach((element) => {
-      element.classList.toggle('d-none', debugModeOn.value !== DEBUG_MODE_ON);
-    });
+    const smartyCacheOptions = document.querySelectorAll('.smarty-cache-option');
+
+    if (smartyCacheSelected && smartyCacheSelected.value === CACHE_ENABLED) {
+      for (let i = 0; i < smartyCacheOptions.length; i += 1) {
+        smartyCacheOptions[i].classList.remove('d-none');
+      }
+
+      return;
+    }
+
+    for (let i = 0; i < smartyCacheOptions.length; i += 1) {
+      smartyCacheOptions[i].classList.add('d-none');
+    }
   },
   displayCacheSystems() {
     const CACHE_ENABLED = '1';
@@ -80,7 +83,6 @@ const PerformancePageUI = {
  */
 window.addEventListener('load', () => {
   PerformancePageUI.displaySmartyCache();
-  PerformancePageUI.displayDebugModeOptions();
   PerformancePageUI.displayCacheSystems();
   PerformancePageUI.displayMemcacheServers();
 });
@@ -99,9 +101,6 @@ while (length--) {
     }
     if (name === 'smarty[cache]') {
       return PerformancePageUI.displaySmartyCache();
-    }
-    if (name === 'debug_mode[debug_mode]') {
-      return PerformancePageUI.displayDebugModeOptions();
     }
     if (name === 'caching[caching_system]') {
       return PerformancePageUI.displayMemcacheServers();

@@ -27,14 +27,14 @@
 
 const {$} = window;
 
-$(() => {
+$(document).ready(() => {
   const form = $('form#product_catalog_list');
 
   /*
    * Tree behavior: collapse/expand system and radio button change event.
    */
   $('div#product_catalog_category_tree_filter').categorytree();
-  $('div#product_catalog_category_tree_filter div.radio > label > input:radio').on('change', function () {
+  $('div#product_catalog_category_tree_filter div.radio > label > input:radio').change(function () {
     if ($(this).is(':checked')) {
       $('form#product_catalog_list input[name="filter_category"]').val($(this).val());
       $('form#product_catalog_list').submit();
@@ -49,7 +49,7 @@ $(() => {
   /*
    * Click on a column header ordering icon to change orderBy / orderWay (location.href redirection)
    */
-  $('[psorderby][psorderway]', form).on('click', function () {
+  $('[psorderby][psorderway]', form).click(function () {
     const orderBy = $(this).attr('psorderby');
     const orderWay = $(this).attr('psorderway');
     productOrderTable(orderBy, orderWay);
@@ -58,7 +58,7 @@ $(() => {
   /*
    * Checkboxes behavior with bulk actions
    */
-  $('input:checkbox[name="bulk_action_selected_products[]"]', form).on('change', () => {
+  $('input:checkbox[name="bulk_action_selected_products[]"]', form).change(() => {
     updateBulkMenu();
   });
 
@@ -91,7 +91,7 @@ $(() => {
   /*
    * Form submit pre action
    */
-  form.on('submit', function (e) {
+  form.submit(function (e) {
     e.preventDefault();
     $('#filter_column_id_product', form).val($('#filter_column_id_product', form).attr('sql'));
     $('#filter_column_price', form).val($('#filter_column_price', form).attr('sql'));

@@ -1,14 +1,13 @@
 #carrier_wizard {
   position: relative;
   display: block;
-  padding: var(--#{$cdk}size-16);
 
   .translatable-field {
-    color: var(--#{$cdk}primary-800);
+    color: $main-color;
 
     li {
       a {
-        color: var(--#{$cdk}primary-800);
+        color: $main-color;
       }
     }
   }
@@ -19,6 +18,7 @@
     clear: both;
 
     div.content {
+      position: absolute;
       display: block;
       width: 100%;
       clear: both;
@@ -37,7 +37,7 @@
     float: left;
     width: 100%;
     padding: 0;
-    margin: 0 0 var(--#{$cdk}size-10);
+    margin: 0 0 10px;
     clear: both;
     list-style: none;
 
@@ -64,31 +64,31 @@
     a {
       position: relative;
       display: block;
-      height: var(--#{$cdk}size-32);
-      margin: 0 var(--#{$cdk}size-16) 0 0;
-      color: var(--#{$cdk}primary-500);
+      height: 32px;
+      margin: 0 16px 0 0;
+      color: #ccc;
       text-decoration: none;
       outline-style: none;
 
       .stepNumber {
         position: relative;
         float: left;
-        width: var(--#{$cdk}size-24);
-        height: var(--#{$cdk}size-32);
-        padding: 0 var(--#{$cdk}size-4);
-        margin-right: var(--#{$cdk}size-2);
-        font-size: var(--#{$cdk}size-30);
-        line-height: var(--#{$cdk}size-32);
-        color: var(--#{$cdk}white);
+        width: 24px;
+        height: 32px;
+        padding: 0 5px;
+        margin-right: 3px;
+        font-size: 30px;
+        line-height: 32px;
+        color: #fff;
         text-align: center;
       }
 
       .stepDesc {
         position: relative;
         display: table-cell;
-        height: var(--#{$cdk}size-32);
-        font-size: var(--#{$cdk}size-14);
-        line-height: var(--#{$cdk}size-14);
+        height: 32px;
+        font-size: 13px;
+        line-height: 13px;
         text-align: left;
         vertical-align: middle;
       }
@@ -96,48 +96,48 @@
       .chevron {
         position: absolute;
         top: 0;
-        right: calc(-1 * var(--#{$cdk}size-16));
-        border: var(--#{$cdk}size-16) solid transparent;
+        right: -16px;
+        border: 16px solid transparent;
         border-right: 0;
-        border-left: var(--#{$cdk}size-14) solid var(--#{$cdk}white);
+        border-left: 14px solid #fff;
 
         &::after {
           position: absolute;
-          top: calc(-1 * var(--#{$cdk}size-16));
-          right: var(--#{$cdk}size-2);
+          top: -16px;
+          right: 2px;
           content: "";
-          border: var(--#{$cdk}size-16) solid transparent;
+          border: 16px solid transparent;
           border-right: 0;
-          border-left: var(--#{$cdk}size-14) solid var(--#{$cdk}primary-500);
+          border-left: 14px solid #ccc;
         }
       }
     }
 
     a.disabled {
-      color: var(--#{$cdk}primary-600);
-      background-color: var(--#{$cdk}primary-500);
+      color: #777;
+      background-color: #ccc;
 
       .chevron::after {
-        border-left: var(--#{$cdk}size-14) solid var(--#{$cdk}primary-500);
+        border-left: 14px solid #ccc;
       }
     }
 
     a.selected {
-      color: var(--#{$cdk}primary-200);
+      color: #f8f8f8;
       cursor: text;
-      background-color: var(--#{$cdk}primary-800);
+      background-color: $main-color;
 
       .chevron::after {
-        border-left: var(--#{$cdk}size-14) solid var(--#{$cdk}primary-800);
+        border-left: 14px solid $main-color;
       }
     }
 
     a.done {
-      color: var(--#{$cdk}white);
+      color: #fff;
       background-color: $brand-success;
 
       .chevron::after {
-        border-left: var(--#{$cdk}size-14) solid $brand-success;
+        border-left: 14px solid $brand-success;
       }
     }
   }
@@ -150,20 +150,21 @@
     position: relative;
     display: none;
     float: left;
-    padding: var(--#{$cdk}size-4);
-    margin: var(--#{$cdk}size-4) 0 0 var(--#{$cdk}size-4);
-    color: var(--#{$cdk}primary-600);
-    background-color: var(--#{$cdk}primary-200);
-    border: 1px solid var(--#{$cdk}amber-500);
+    padding: 5px;
+    margin: 4px 0 0 5px;
+    color: #5a5655;
+    background-color: #ffd;
+    border: 1px solid #ffd700;
+    @include border-radius(5px);
+  }
 
-    .content {
-      float: left;
-      padding: 0;
-    }
+  .msgBox .content {
+    float: left;
+    padding: 0;
   }
 
   #carrier_logo_block {
-    right: var(--#{$cdk}size-10);
+    right: 10px;
   }
 
   .wizard_error {
@@ -173,7 +174,7 @@
 
   .range_inf td,
   .range_sup td {
-    background-color: var(--#{$cdk}primary-500);
+    background-color: #ccc;
   }
 
   .range_type {
@@ -187,8 +188,8 @@
   }
 
   .range_sign {
-    width: var(--#{$cdk}size-18);
-    font-size: var(--#{$cdk}size-20);
+    width: 18px;
+    font-size: 20px;
     text-align: center;
   }
 
@@ -205,11 +206,11 @@
   }
 
   .actionBar {
-    display: flex;
-    flex-direction: row-reverse;
+    height: 30px;
+  }
 
-    a {
-      margin-right: var(--#{$cdk}size-10);
-    }
+  .actionBar a {
+    float: right;
+    margin-right: 10px;
   }
 }

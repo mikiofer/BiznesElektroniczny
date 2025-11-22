@@ -1,24 +1,22 @@
 .tree-panel-heading-controls {
-  margin: 0 0 var(--#{$cdk}size-16) 0;
+  padding: 5px;
+  margin: -20px -20px 20px;
+  font-size: 1.1em;
+  line-height: 2.2em;
+  color: $brand-primary;
+  border-bottom: solid 1px #dfdfdf;
 
-  .tree-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--#{$cdk}size-4);
-
-    .pull-right {
-      order: 10;
-    }
+  i {
+    font-size: $icon-size-base;
   }
 }
 
 .tree {
-  padding: 0 0 0 var(--#{$cdk}size-16);
-  margin: 0;
   list-style: none;
+  @include padding(0, 0, 0, 20px);
 
   input {
-    margin: 0;
+    margin-right: 4px;
     line-height: normal;
     vertical-align: baseline;
   }
@@ -29,45 +27,48 @@
 
   .tree-item-name,
   .tree-folder-name {
-    display: inline-flex;
-    gap: var(--#{$cdk}size-8);
-    align-items: center;
-    padding: var(--#{$cdk}size-2) var(--#{$cdk}size-4);
-    margin: var(--#{$cdk}size-2) 0;
+    padding: 2px 5px;
+    @include border-radius(4px);
+
+    label {
+      font-weight: 400;
+    }
 
     &:hover {
       cursor: pointer;
-      background-color: var(--#{$cdk}primary-200);
-    }
-
-    label {
-      margin: 0;
+      background-color: #eee;
     }
   }
 
   .tree-selected {
-    background-color: var(--#{$cdk}primary-200);
+    color: #fff;
+    background-color: $brand-primary;
 
     &:hover {
-      background-color: var(--#{$cdk}primary-400);
+      background-color: darken($brand-primary, 5%);
+    }
+
+    i.tree-dot {
+      background-color: #fff;
     }
   }
 
   i.tree-dot {
     position: relative;
     display: inline-block;
-    width: var(--#{$cdk}size-6);
-    height: var(--#{$cdk}size-6);
-    background-color: var(--#{$cdk}primary-500);
-    border-radius: var(--#{$cdk}size-6);
+    width: 6px;
+    height: 6px;
+    margin: 0 4px;
+    background-color: #ccc;
+    @include border-radius(6px);
   }
 
   .tree-item-disable,
   .tree-folder-name-disable {
-    color: var(--#{$cdk}primary-300);
+    color: #ccc;
 
     &:hover {
-      color: var(--#{$cdk}primary-300);
+      color: #ccc;
       background-color: none;
     }
   }
@@ -77,24 +78,20 @@
   display: inline-block;
 
   .twitter-typeahead {
+    @include padding(0,0,0,4px);
     position: relative;
-    top: var(--#{$cdk}size-1);
-    padding: 0 0 0 var(--#{$cdk}size-4);
+    top: 1px;
   }
 
   .tt-hint {
     // stylelint-disable-next-line
-    left: var(--#{$cdk}size-4) !important;
-    color: var(--#{$cdk}primary-300);
-  }
-
-  .search-field[type="text"]{
-    margin: 0;
+    left: 4px !important;
+    color: #ccc;
   }
 }
 
 .tree-panel-label-title {
-  padding: 0 0 0 var(--#{$cdk}size-8);
   margin: 0;
   font-weight: 400;
+  @include padding(0, 0, 0, 8px);
 }

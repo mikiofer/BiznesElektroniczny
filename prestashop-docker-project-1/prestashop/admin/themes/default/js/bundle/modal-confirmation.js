@@ -17,14 +17,14 @@ window.modalConfirmation = (function () {
     },
   };
 
-  modal.find('button.cancel').on('click', () => {
+  modal.find('button.cancel').click(() => {
     if (typeof actionsCallbacks.onCancel === 'function') {
       actionsCallbacks.onCancel();
     }
     modalConfirmation.hide();
   });
 
-  modal.find('button.continue').on('click', () => {
+  modal.find('button.continue').click(() => {
     if (typeof actionsCallbacks.onContinue === 'function') {
       actionsCallbacks.onContinue();
     }

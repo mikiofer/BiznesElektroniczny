@@ -310,7 +310,7 @@ function setPreviousYear() {
 let datepickerStart;
 let datepickerEnd;
 
-$(() => {
+$(document).ready(() => {
   // Instanciate datepickers
   datepickerStart = $('.datepicker1').daterangepicker({
     dates: window.translated_dates,
@@ -346,21 +346,21 @@ $(() => {
   }
 
   // Events binding
-  $('#date-start').on('focus', function () {
+  $('#date-start').focus(function () {
     datepickerStart.setCompare(false);
     datepickerEnd.setCompare(false);
     $('.date-input').removeClass('input-selected');
     $(this).addClass('input-selected');
   });
 
-  $('#date-end').on('focus', function () {
+  $('#date-end').focus(function () {
     datepickerStart.setCompare(false);
     datepickerEnd.setCompare(false);
     $('.date-input').removeClass('input-selected');
     $(this).addClass('input-selected');
   });
 
-  $('#date-start-compare').on('focus', function () {
+  $('#date-start-compare').focus(function () {
     datepickerStart.setCompare(true);
     datepickerEnd.setCompare(true);
     $('#compare-options').val(3);
@@ -368,7 +368,7 @@ $(() => {
     $(this).addClass('input-selected');
   });
 
-  $('#date-end-compare').on('focus', function () {
+  $('#date-end-compare').focus(function () {
     datepickerStart.setCompare(true);
     datepickerEnd.setCompare(true);
     $('#compare-options').val(3);
@@ -376,16 +376,16 @@ $(() => {
     $(this).addClass('input-selected');
   });
 
-  $('#datepicker-cancel').on('click', () => {
+  $('#datepicker-cancel').click(() => {
     $('#datepicker').addClass('hide');
   });
 
-  $('#datepicker').on('show', () => {
+  $('#datepicker').show(() => {
     $('#date-start').focus();
     $('#date-start').trigger('change');
   });
 
-  $('#datepicker-compare').on('click', function () {
+  $('#datepicker-compare').click(function () {
     if ($(this).prop('checked')) {
       $('#compare-options').trigger('change');
       $('#form-date-body-compare').show();
@@ -401,7 +401,7 @@ $(() => {
     }
   });
 
-  $('#compare-options').on('change', function () {
+  $('#compare-options').change(function () {
     if (this.value === '1') setPreviousPeriod();
 
     if (this.value === '2') setPreviousYear();

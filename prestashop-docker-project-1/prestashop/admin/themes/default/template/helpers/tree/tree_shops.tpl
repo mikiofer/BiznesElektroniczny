@@ -53,11 +53,10 @@
 		);
 	}
 
-	$(function () {
+	$(document).ready(function () {
 		$("#{$id|escape:'html':'UTF-8'}").tree("expandAll");
-		$("#{$id|escape:'html':'UTF-8'}").find(":input[type=checkbox]").on(
-      'click',
-      function()
+		$("#{$id|escape:'html':'UTF-8'}").find(":input[type=checkbox]").click(
+			function()
 			{
 				if($(this).is(':checked'))
 				{

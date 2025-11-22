@@ -23,10 +23,7 @@
  * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
  *-->
 <template>
-  <div
-    class="ps-select"
-    :id="itemId"
-  >
+  <div class="ps-select">
     <select
       class="form-control"
       v-model="selected"
@@ -49,13 +46,11 @@
   </div>
 </template>
 
-<script lang="ts">
-  import {defineComponent, PropType} from 'vue';
-
-  export default defineComponent({
+<script>
+  export default {
     props: {
       items: {
-        type: Array as PropType<Array<Record<string, any>>>,
+        type: Array,
         required: true,
       },
       itemId: {
@@ -70,19 +65,15 @@
       },
     },
     methods: {
-      onChange(): void {
+      onChange() {
         this.$emit('change', {
           value: this.selected,
           itemId: this.itemId,
         });
       },
     },
-    data() {
-      return {
-        selected: 'default',
-      };
-    },
-  });
+    data: () => ({selected: 'default'}),
+  };
 </script>
 
 <style lang="scss" scoped>
@@ -96,12 +87,12 @@
     }
     &::after {
       content: "\E313";
-      font-family: var(--#{$cdk}font-family-material-icons);
-      color: var(--#{$cdk}primary-400);
-      font-size: var(--#{$cdk}size-20);
+      font-family: 'Material Icons';
+      color: $gray-medium;
+      font-size: 20px;
       position: absolute;
-      right: var(--#{$cdk}size-5);
-      top: var(--#{$cdk}size-5);
+      right: 5px;
+      top: 5px;
     }
   }
 </style>

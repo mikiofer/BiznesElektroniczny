@@ -45,21 +45,21 @@
 		}
 	}
 
-	$(function() {
+	$(document).ready(function() {
 		if (!$("input[name=share_order]").prop('disabled'))
 		{
 			toggleShareOrders();
-			$('input[name=share_customer]').on('click', function()
+			$('input[name=share_customer]').click(function()
 			{
 				toggleShareOrders();
 			});
-			$('input[name=share_stock]').on('click', function()
+			$('input[name=share_stock]').click(function()
 			{
 				toggleShareOrders();
 			});
 		}
 
-		$('#useImportData').on('click', function() {
+		$('#useImportData').click(function() {
 			$('#importList').slideToggle('slow');
 		});
 	});

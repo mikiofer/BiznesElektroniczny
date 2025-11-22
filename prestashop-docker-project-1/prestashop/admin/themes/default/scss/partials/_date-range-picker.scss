@@ -1,17 +1,17 @@
-$color-bright: map-get($map: $cdk-common, $key: "white");
+$color-bright: #fff;
 
-$color-calendar: map-get($map: $cdk-primary, $key: "primary-800");
-$color-calendar-compare: map-get($map: $cdk-blue, $key: "blue-700");
+$color-calendar: #00a4e7;
+$color-calendar-compare: #ff8000;
 
 $color-calendar-day: $color-bright;
 
-$color-calendar-outrange: map-get($map: $cdk-primary, $key: "primary-400");
+$color-calendar-outrange: #ccc;
 
 $color-calendar-day-selected: $color-calendar;
 $color-calendar-day-selected-compare: $color-calendar-compare;
 
-$color-calendar-range: map-get($map: $cdk-primary, $key: "primary-600");
-$color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
+$color-calendar-range: lighten($color-calendar, 10%);
+$color-calendar-range-compare: lighten($color-calendar-compare, 10%);
 
 #datepicker {
   .input-selected {
@@ -20,28 +20,28 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
 
   #date-start.input-selected,
   #date-end.input-selected {
-    border: solid 1px $color-calendar-day-selected;
+    border: solid 3px $color-calendar-day-selected;
   }
 
   #date-start-compare.input-selected,
   #date-end-compare.input-selected {
-    border: solid 1px $color-calendar-day-selected-compare;
+    border: solid 3px $color-calendar-day-selected-compare;
   }
 
   div#datepicker-form {
     #date-range {
-      border: solid 1px $color-calendar;
+      border: solid 1px darken($color-calendar, 5%);
 
       .form-date-heading {
-        background-color: $color-calendar;
+        background-color: darken($color-calendar, 5%);
       }
     }
 
     #date-compare {
-      border: solid 1px $color-calendar-compare;
+      border: solid 1px darken($color-calendar-compare, 5%);
 
       .form-date-heading {
-        background-color: $color-calendar-compare;
+        background-color: darken($color-calendar-compare, 5%);
       }
     }
 
@@ -52,7 +52,6 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
 
       .title,
       .checkbox-title label {
-        margin-top: 0;
         font-size: 1.15em;
         font-weight: 200;
         line-height: 2em;
@@ -69,9 +68,6 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
 
       select {
         @include margin(2px,2px,0,0);
-        @include padding(2px, 4px, 2px, 4px);
-        height: 1.625rem;
-        line-height: 1;
       }
     }
 
@@ -84,12 +80,7 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
     }
 
     .form-date-actions {
-      padding: 8px;
-      border: solid 1px var(--#{$cdk}primary-400);
-
-      .btn.pull-right {
-        @extend .btn-primary;
-      }
+      border: solid 1px #ccc;
     }
 
     .form-date-group {
@@ -98,20 +89,18 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
       clear: both;
 
       label {
-        margin-top: 5px;
         font-size: 0.8em;
         font-weight: 700;
+        color: #666;
         text-transform: uppercase;
       }
 
       input {
-        @include margin(0, 2px, 0, 0);
+        @include margin(4px, 4px, 0, 0);
       }
 
       input[type="text"] {
-        @include margin(0, 8px, 0, 0);
         width: 35%;
-        height: 2.25rem;
       }
 
       button {
@@ -124,7 +113,7 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
     position: relative;
     width: 100%;
     font-size: 13px;
-    border: solid 1px var(--#{$cdk}primary-400);
+    border: solid 1px #ccc;
     @include margin(0, 0, 8px, 0);
 
     table {
@@ -137,9 +126,9 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
       tr th {
         height: 1.5em;
         font-size: 0.7em;
-        color: var(--#{$cdk}white);
+        color: #fff;
         text-transform: uppercase;
-        background-color: $color-calendar;
+        background-color: darken($color-calendar, 5%);
       }
 
       tr:first-child th {
@@ -148,7 +137,7 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         color: $color-calendar-day-selected;
         cursor: pointer;
         background-color: $color-bright;
-        border-bottom: 1px solid $color-calendar;
+        border-bottom: 1px solid darken($color-calendar, 5%);
       }
     }
 
@@ -160,7 +149,7 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
     }
 
     tr {
-      border-bottom: solid 1px var(--#{$cdk}white);
+      border-bottom: solid 1px #fff;
     }
 
     td {
@@ -199,14 +188,20 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         font-weight: 700;
         color: $color-bright;
         background-color: $color-calendar-day-selected;
+        @include border-left-radius(15px);
 
         &.range-compare {
-          background-color: mix($color-calendar-day-selected, $color-calendar-range-compare, 50%);
+          background-color: mix($color-calendar-day-selected, $color-calendar-range-compare, 70%);
+          @include border-left-radius(0);
         }
 
         &.end-selected-compare,
         &.start-selected-compare {
-          background-color: mix($color-calendar-day-selected, $color-calendar-day-selected-compare, 50%);
+          background-color: mix($color-calendar-day-selected, $color-calendar-day-selected-compare, 70%);
+        }
+
+        &.end-selected-compare {
+          @include border-radius(0);
         }
       }
 
@@ -214,14 +209,20 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         font-weight: 700;
         color: $color-bright;
         background-color: $color-calendar-day-selected;
+        @include border-right-radius(15px);
 
         &.range-compare {
-          background-color: mix($color-calendar-day-selected, $color-calendar-range-compare, 50%);
+          background-color: mix($color-calendar-day-selected, $color-calendar-range-compare, 70%);
+          @include border-right-radius(0);
         }
 
         &.end-selected-compare,
         &.start-selected-compare {
-          background-color: mix($color-calendar-day-selected, $color-calendar-day-selected-compare, 50%);
+          background-color: mix($color-calendar-day-selected, $color-calendar-day-selected-compare, 70%);
+        }
+
+        &.start-selected-compare {
+          @include border-radius(0);
         }
       }
 
@@ -229,9 +230,11 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         font-weight: 700;
         color: $color-bright;
         background-color: $color-calendar-day-selected-compare;
+        @include border-left-radius(15px);
 
         &.range {
-          background-color: mix($color-calendar-day-selected-compare, $color-calendar-range, 50%);
+          background-color: mix($color-calendar-day-selected-compare, $color-calendar-range, 70%);
+          @include border-left-radius(0);
         }
       }
 
@@ -239,9 +242,11 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         font-weight: 700;
         color: $color-bright;
         background-color: $color-calendar-day-selected-compare;
+        @include border-right-radius(15px);
 
         &.range {
-          background-color: mix($color-calendar-day-selected-compare, $color-calendar-range, 50%);
+          background-color: mix($color-calendar-day-selected-compare, $color-calendar-range, 70%);
+          @include border-right-radius(0);
         }
       }
 
@@ -249,9 +254,11 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         font-weight: 700;
         color: $color-bright;
         background-color: $color-calendar-day-selected;
+        @include border-radius(15px);
 
         &.range-compare {
-          background-color: mix($color-calendar-day-selected, $color-calendar-range-compare, 50%);
+          background-color: mix($color-calendar-day-selected, $color-calendar-range-compare, 70%);
+          @include border-radius(0);
         }
       }
 
@@ -259,14 +266,16 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         font-weight: 700;
         color: $color-bright;
         background-color: $color-calendar-day-selected-compare;
+        @include border-radius(15px);
 
         &.range {
-          background-color: mix($color-calendar-day-selected-compare, $color-calendar-range, 50%);
+          background-color: mix($color-calendar-day-selected-compare, $color-calendar-range, 70%);
+          @include border-radius(0);
         }
       }
 
       &.range {
-        color: var(--#{$cdk}white);
+        color: lighten($color-calendar-range, 35%);
         background-color: $color-calendar-range;
 
         &.range-compare {
@@ -275,7 +284,7 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
       }
 
       &.range-compare {
-        color: var(--#{$cdk}white);
+        color: lighten($color-calendar-range-compare, 35%);
         background-color: $color-calendar-range-compare;
 
         &.range {
@@ -299,12 +308,12 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         cursor: pointer;
 
         &:hover {
-          color: var(--#{$cdk}white);
+          color: #fff;
           background-color: $color-calendar-day-selected;
         }
 
         &.active {
-          color: var(--#{$cdk}white);
+          color: #fff;
           background-color: $color-calendar-day-selected;
         }
 
@@ -333,17 +342,11 @@ $color-calendar-range-compare: map-get($map: $cdk-blue, $key: "blue-300");
         line-height: 2em;
 
         &:hover {
-          color: var(--#{$cdk}white);
-          background-color: $color-calendar;
+          color: #fff;
+          background-color: darken($color-calendar, 5%);
         }
       }
     }
-  }
-}
-
-#datepickerExpand {
-  i {
-    vertical-align: middle;
   }
 }
 

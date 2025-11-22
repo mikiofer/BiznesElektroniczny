@@ -75,7 +75,7 @@
 		}
 	{/if}
 	{if isset($use_search) && $use_search == true}
-		$('#{$id|escape:'html':'UTF-8'}-categories-search').on('typeahead:selected', function(obj, datum){
+		$('#{$id|escape:'html':'UTF-8'}-categories-search').bind('typeahead:selected', function(obj, datum){
 			var match = $('#{$id|escape:'html':'UTF-8'}').find(':input[value="'+datum.id_category+'"]').first();
 			if (match.length)
 			{
@@ -102,15 +102,8 @@
 				);
 				{literal}
 				$.get(
-					'index.php',
-          {
-            ajax: 1,
-            controller: 'AdminProducts',
-            token: currentToken,
-            action: 'getCategoryTree',
-            fullTree: 1,
-            selected: selected
-          },
+					'ajax-tab.php',
+					{controller:'AdminProducts',token:currentToken,action:'getCategoryTree', fullTree:1, selected:selected},
 					function(content) {
 				{/literal}
 						$('#{$id|escape:'html':'UTF-8'}').html(content);
@@ -130,9 +123,9 @@
 			}
 		});
 	{/if}
-	$(function(){
+	$(document).ready(function(){
 		$('#{$id|escape:'html':'UTF-8'}').tree('collapseAll');
-		$('#{$id|escape:'html':'UTF-8'}').find(':input[type=radio]').on('click', treeClickFunc);
+		$('#{$id|escape:'html':'UTF-8'}').find(':input[type=radio]').click(treeClickFunc);
 
 		{if isset($selected_categories)}
 			$('#no_default_category').hide();

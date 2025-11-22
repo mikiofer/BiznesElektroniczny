@@ -32,13 +32,6 @@
   </div>
 </template>
 
-<script lang="ts">
-  import {defineComponent} from 'vue';
-
-  export default defineComponent({
-  });
-</script>
-
 <style lang="scss" scoped>
   @import '~@scss/config/_settings.scss';
 
@@ -49,18 +42,15 @@
       animation-iteration-count: infinite;
       animation-name: loading;
       animation-timing-function: linear;
-      background: var(--#{$cdk}primary-200);
-      background:
-        linear-gradient(to right, var(--#{$cdk}primary-200) 10%,
-        var(--#{$cdk}primary-500) 20%,
-        var(--#{$cdk}primary-200) 30%);
+      background: $gray-soft;
+      background: linear-gradient(to right, $gray-soft 8%, #ccc 18%, $gray-soft 33%);
       background-size: 100%;
-      height: var(--#{$cdk}size-40);
+      height: 40px;
       position: relative;
     }
 
     .background-masker {
-      background: var(--#{$cdk}white);
+      background: white;
       position: absolute;
     }
   }

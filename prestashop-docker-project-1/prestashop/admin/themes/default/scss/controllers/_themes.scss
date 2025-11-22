@@ -1,15 +1,11 @@
 .theme-container {
   position: relative;
   width: 100%;
+  height: 300px;
   overflow: hidden;
   background-color: rgba(#4d576e, 0.3);
   border: solid 1px #ccc;
   @include border-radius(3px);
-
-  .thumbnail {
-    width: 100%;
-    margin-bottom: 0;
-  }
 
   .theme-title {
     height: 40px;
@@ -33,7 +29,7 @@
       .action-overlay {
         width: 100%;
         height: 260px;
-        background-image: linear-gradient(rgba(77, 87, 110, 0.5), "#4d576e");
+        @include background-image(linear-gradient(rgba(#4D576E,0.5),#4D576E));
       }
 
       .action-buttons {
@@ -56,21 +52,6 @@
 
 .addons-style-search-bar {
   padding-top: 0;
-}
-
-#psthemecusto {
-  .btn-group {
-    display: inline-flex;
-
-    .dropdown-action {
-      float: none;
-      height: auto;
-
-      i {
-        padding: 0;
-      }
-    }
-  }
 }
 
 &#content #psthemecusto {

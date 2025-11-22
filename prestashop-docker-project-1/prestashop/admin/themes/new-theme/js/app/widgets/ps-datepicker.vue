@@ -27,7 +27,7 @@
     <input
       ref="datepicker"
       type="text"
-      :class="['form-control', `datepicker-${type}`]"
+      class="form-control"
     >
     <div class="input-group-append">
       <span class="input-group-text">
@@ -37,10 +37,8 @@
   </div>
 </template>
 
-<script lang="ts">
-  import {defineComponent} from 'vue';
-
-  export default defineComponent({
+<script>
+  export default {
     props: {
       locale: {
         type: String,
@@ -53,11 +51,10 @@
       },
     },
     mounted() {
-      $(<HTMLInputElement> this.$refs.datepicker).datetimepicker({
+      $(this.$refs.datepicker).datetimepicker({
         format: 'YYYY-MM-DD',
         showClear: true,
-        useCurrent: false,
-      }).on('dp.change', (infos: Record<string, any>) => {
+      }).on('dp.change', (infos) => {
         infos.dateType = this.type;
         this.$emit(
           infos.date ? 'dpChange' : 'reset',
@@ -65,7 +62,7 @@
         );
       });
     },
-  });
+  };
 </script>
 
 <style lang="scss">
@@ -73,18 +70,18 @@
 
   .date {
     a[data-action='clear']::before {
-      font-family: var(--#{$cdk}font-family-material-icons);
+      font-family: 'Material Icons';
       content: "\E14C";
-      font-size: var(--#{$cdk}size-20);
+      font-size: 20px;
       position: absolute;
-      bottom: var(--#{$cdk}size-16);
+      bottom: 15px;
       left: 50%;
-      margin-left: calc(-1 * var(--#{$cdk}size-10));
-      color: var(--#{$cdk}primary-800);
-      cursor: pointer;
+      margin-left: -10px;
+      color: $gray-dark;
+      cursor:pointer;
     }
     .bootstrap-datetimepicker-widget tr td span:hover {
-      background-color: var(--#{$cdk}white);
+      background-color: white;
     }
   }
 

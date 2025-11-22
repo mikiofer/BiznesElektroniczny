@@ -1,61 +1,23 @@
 <?php
-/**
- * Copyright since 2007 PrestaShop SA and Contributors
- * PrestaShop is an International Registered Trademark & Property of PrestaShop SA
- *
- * NOTICE OF LICENSE
- *
- * This source file is subject to the Open Software License (OSL 3.0)
- * that is bundled with this package in the file LICENSE.md.
- * It is also available through the world-wide-web at this URL:
- * https://opensource.org/licenses/OSL-3.0
- * If you did not receive a copy of the license and are unable to
- * obtain it through the world-wide-web, please send an email
- * to license@prestashop.com so we can send you a copy immediately.
- *
- * DISCLAIMER
- *
- * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
- * versions in the future. If you wish to customize PrestaShop for your
- * needs please refer to https://devdocs.prestashop.com/ for more information.
- *
- * @author    PrestaShop SA and Contributors <contact@prestashop.com>
- * @copyright Since 2007 PrestaShop SA and Contributors
- * @license   https://opensource.org/licenses/OSL-3.0 Open Software License (OSL 3.0)
- */
 
 session_start();
 
 if (!defined('_PS_ADMIN_DIR_')) {
-    // Properly assign admin directory path, we don't want to use relative traversal here,
-    // it creates problems in some methods that use basename(_PS_ADMIN_DIR_), like Link class.
-    define('_PS_ADMIN_DIR_', dirname(__DIR__, 2));
+    define('_PS_ADMIN_DIR_', dirname(__FILE__).'/../../');
 }
 
 require_once _PS_ADMIN_DIR_.'/../config/config.inc.php';
-
-// Boot the Symfony kernel
-global $kernel;
-
-if (!$kernel) {
-    require_once _PS_ROOT_DIR_ . '/app/AdminKernel.php';
-
-    $kernel = new AdminKernel(
-        _PS_ENV_,
-        _PS_MODE_DEV_
-    );
-    $kernel->boot();
-}
-
 require_once _PS_ADMIN_DIR_.'/init.php';
 
-mb_internal_encoding('UTF-8');
+if (function_exists('mb_internal_encoding')) {
+    mb_internal_encoding('UTF-8');
+}
 
 $products_accesses = Profile::getProfileAccess(Context::getContext()->employee->id_profile, Tab::getIdFromClassName('AdminProducts'));
 $cms_accesses = Profile::getProfileAccess(Context::getContext()->employee->id_profile, Tab::getIdFromClassName('AdminCmsContent'));
 
 if (!$products_accesses['edit'] && !$cms_accesses['edit']) {
-    throw new PrestaShopException('Access forbidden.');
+    die(Tools::displayError());
 }
 //------------------------------------------------------------------------------
 // DON'T COPY THIS VARIABLES IN FOLDERS config.php FILES
@@ -76,7 +38,7 @@ if (!$products_accesses['edit'] && !$cms_accesses['edit']) {
 //    |   |   |   |   |- plugin.min.js
 
 $base_url = Tools::getHttpHost(true);  // DON'T TOUCH (base url (only domain) of site (without final /)).
-$base_url = Configuration::get('PS_SSL_ENABLED') ? $base_url : str_replace('https', 'http', $base_url);
+$base_url = Configuration::get('PS_SSL_ENABLED') && Configuration::get('PS_SSL_ENABLED_EVERYWHERE') ? $base_url : str_replace('https', 'http', $base_url);
 $upload_dir = Context::getContext()->shop->getBaseURI().'img/cms/'; // path from base_url to base of upload folder (with start and final /)
 $current_path = _PS_ROOT_DIR_.'/img/cms/'; // relative path from filemanager folder to upload folder (with final /)
 //thumbs folder can't put inside upload folder
@@ -141,7 +103,7 @@ $duplicate_files=true;
 //**********************
 //Allowed extensions (lowercase insert)
 //**********************
-$ext_img = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg', 'webp'); //Images
+$ext_img = array('jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg'); //Images
 $ext_file = array('pdf'); //array('doc', 'docx','rtf', 'pdf', 'xls', 'xlsx', 'txt', 'csv','html','xhtml','psd','sql','log','fla','xml','ade','adp','mdb','accdb','ppt','pptx','odt','ots','ott','odb','odg','otp','otg','odf','ods','odp','css','ai'); //Files
 $ext_video = array('mov', 'mpeg', 'mp4', 'avi', 'mpg', 'wma', 'flv', 'webm'); //Video
 $ext_music = array(); //array('mp3', 'm4a', 'ac3', 'aiff', 'mid','ogg','wav'); //Audio
@@ -152,11 +114,20 @@ $ext=array_merge($ext_img, $ext_file, $ext_misc, $ext_video, $ext_music); //allo
 //**********************
 //Allowed mime types
 //**********************
-$mime_img = array('image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff', 'image/svg', 'image/svg+xml', 'image/webp');
+$mime_img = array('image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff', 'image/svg');
 $mime_file = array('application/pdf');
 $mime_video = array('video/mpeg', 'video/mp4', 'video/x-msvideo', 'audio/x-ms-wma', 'video/x-flv', 'video/webm');
 
 $mime = array_merge($mime_img, $mime_file, $mime_video);
+
+/******************
+ * AVIARY config
+*******************/
+$aviary_active=false;
+$aviary_key="dvh8qudbp6yx2bnp";
+$aviary_secret="m6xaym5q42rpw433";
+$aviary_version=3;
+$aviary_language='en';
 
 //The filter and sorter are managed through both javascript and php scripts because if you have a lot of
 //file in a folder the javascript script can't sort all or filter all, so the filemanager switch to php script.

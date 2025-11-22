@@ -17,8 +17,7 @@
  * @license   https://opensource.org/licenses/AFL-3.0 Academic Free License version 3.0
  *#}
 
-{% set displayAction = action|title|replace({'_': " "})|trans({}, transDomain[action]) %}
-
+{% set displayAction = action|title|replace({'_': " "})|trans({}, transDomain) %}
 {% if (action == 'configure') %}
 
     <a class="{{ classes }}" href="{{ url }}">

@@ -30,7 +30,7 @@
           @click="goToPage(currentPage - 1)"
           :disabled="currentPage === 1"
         >
-          <i class="material-icons rtl-flip">chevron_left</i>
+          <i class="material-icons">chevron_left</i>
         </button>
       </li>
       <li
@@ -47,19 +47,17 @@
           @click="goToPage(currentPage + 1)"
           :disabled="currentPage === paginatedDatas.length"
         >
-          <i class="material-icons rtl-flip">chevron_right</i>
+          <i class="material-icons">chevron_right</i>
         </button>
       </li>
     </ul>
   </div>
 </template>
 
-<script lang="ts">
-  import {defineComponent} from 'vue';
-
-  export default defineComponent({
+<script>
+  export default {
     name: 'Pagination',
-    data(): {paginatedDatas: Array<Record<string, any>>, currentPage: number} {
+    data() {
       return {
         paginatedDatas: [],
         currentPage: 1,
@@ -67,7 +65,7 @@
     },
     props: {
       datas: {
-        type: Array as () => Array<Record<string, any>>,
+        type: Array,
         default: () => [],
       },
       paginationLength: {
@@ -81,7 +79,7 @@
        *
        * @param {int} pageNumber
        */
-      goToPage(pageNumber: number): void {
+      goToPage(pageNumber) {
         if (this.paginatedDatas[pageNumber - 1]) {
           this.currentPage = pageNumber;
           this.$emit('paginated', {
@@ -95,7 +93,7 @@
        *
        * @param {array} newDatas
        */
-      constructDatas(newDatas: Array<Record<string, any>>): void {
+      constructDatas(newDatas) {
         this.paginatedDatas = [];
 
         for (let i = 0; i < newDatas.length; i += this.paginationLength) {
@@ -112,7 +110,7 @@
        *
        * @param {int} key
        */
-      isActive(key: number): string | null {
+      isActive(key) {
         return this.currentPage === key + 1 ? 'active' : null;
       },
     },
@@ -128,11 +126,11 @@
        *
        * @param {array} newDatas
        */
-      datas(newDatas: Array<Record<string, any>>): void {
+      datas(newDatas) {
         this.constructDatas(newDatas);
       },
     },
-  });
+  };
 </script>
 
 <style lang="scss" type="text/scss">
@@ -152,11 +150,11 @@
     list-style-type: none;
 
     button {
-      font-size: var(--#{$cdk}size-16);
-      padding: var(--#{$cdk}size-8);
+      font-size: 1rem;
+      padding: 0.5rem;
       transition: 0.25s ease-out;
       cursor: pointer;
-      color: var(--#{$cdk}primary-600);
+      color: #6c868e;
       border: 0;
       background-color: inherit;
 
@@ -166,20 +164,20 @@
       }
 
       &:hover:not(:disabled) {
-        color: var(--#{$cdk}primary-800);
+        color: $primary;
       }
     }
 
     &.active {
       button {
-        color: var(--#{$cdk}primary-800);
+        color: $primary;
       }
     }
   }
 
   &-previous,
   &-next {
-    font-size: var(--#{$cdk}size-20);
+    font-size: 1.25rem;
   }
 }
 </style>

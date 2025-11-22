@@ -9,9 +9,10 @@ services:
       DB_NAME: prestashop
       DB_USER: prestashop
       DB_PASS: prestashop_password
+      PS_INSTALL_AUTO: 0
     volumes:
-      - prestashop:/var/www/html
-      #- ./prestashop:/var/www/html
+      #- prestashop:/var/www/html
+      - ./prestashop:/var/www/html
     depends_on:
       - db
 
@@ -27,5 +28,4 @@ services:
     command: --default-authentication-plugin=mysql_native_password
 
 volumes:
-  prestashop:
   db_data:

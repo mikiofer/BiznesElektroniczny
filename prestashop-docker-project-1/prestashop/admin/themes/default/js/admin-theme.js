@@ -52,11 +52,11 @@ function confirm_modal(
       + '</div>'
       + '</div>',
   );
-  confirmModal.find('#confirm-modal-left-button').on('click', () => {
+  confirmModal.find('#confirm-modal-left-button').click(() => {
     leftButtonCallback();
     confirmModal.modal('hide');
   });
-  confirmModal.find('#confirm-modal-right-button').on('click', () => {
+  confirmModal.find('#confirm-modal-right-button').click(() => {
     rightButtonCallback();
     confirmModal.modal('hide');
   });
@@ -85,7 +85,7 @@ function error_modal(heading, msg) {
       + '</div>'
       + '</div>',
   );
-  errorModal.find('#error_modal_right_button').on('click', () => {
+  errorModal.find('#error_modal_right_button').click(() => {
     errorModal.modal('hide');
   });
   errorModal.modal('show');
@@ -110,7 +110,7 @@ function scroll_if_anchor(href) {
     }
   }
 }
-$(() => {
+$(document).ready(() => {
   const $mainMenu = $('.main-menu');
   const $navBar = $('.nav-bar');
   const $body = $('body');
@@ -135,13 +135,10 @@ $(() => {
 
   $('.nav-bar')
     .find('.link-levelone')
-    .on(
-      'mouseenter',
+    .hover(
       function () {
         $(this).addClass('-hover');
       },
-    ).on(
-      'mouseleave',
       function () {
         $(this).removeClass('-hover');
       },
@@ -338,6 +335,7 @@ $(() => {
       .removeClass('collapse')
       .addClass('submenu');
     $('.shop-list-title').remove();
+    $('.js-non-responsive').hide();
     $('.mobile-layer')
       .addClass('d-none')
       .removeClass('expanded');
@@ -380,7 +378,7 @@ $(() => {
   });
 
   let timer;
-  $(window).on('scroll', () => {
+  $(window).scroll(() => {
     if (timer) {
       window.clearTimeout(timer);
     }
@@ -397,7 +395,7 @@ $(() => {
       .focus();
   });
 
-  $('.page-sidebar-closed').on('click', () => {
+  $('.page-sidebar-closed').click(() => {
     $('.searchtab').removeClass('search-expanded');
   });
 
@@ -428,7 +426,7 @@ $(() => {
   });
 
   // search with nav sidebar opened
-  $('.page-sidebar').on('click', () => {
+  $('.page-sidebar').click(() => {
     $('#header_search .form-group').removeClass('focus-search');
   });
 
@@ -450,16 +448,37 @@ $(() => {
       .closest('li')
       .addClass('active');
     $('#bo_search_type').val($(this).data('value'));
-    $('#search_type_icon').text($(this).find('.material-icons').text());
+    $('#search_type_icon')
+      .removeAttr('class')
+      .addClass($(this).data('icon'));
     $('#bo_query').attr('placeholder', $(this).data('placeholder'));
     $('#bo_query').focus();
+  });
+
+  // reset form
+  /* global header_confirm_reset, body_confirm_reset, left_button_confirm_reset, right_button_confirm_reset */
+  $('.reset_ready').click(function () {
+    const href = $(this).attr('href');
+    confirm_modal(
+      header_confirm_reset,
+      body_confirm_reset,
+      left_button_confirm_reset,
+      right_button_confirm_reset,
+      () => {
+        window.location.href = `${href}&keep_data=1`;
+      },
+      () => {
+        window.location.href = `${href}&keep_data=0`;
+      },
+    );
+    return false;
   });
 
   // scroll_if_anchor(window.location.hash);
   $('body').on('click', 'a.anchor', scroll_if_anchor);
 
   // manage curency status switcher
-  $('#currencyStatus input').on('change', function () {
+  $('#currencyStatus input').change(function () {
     const parentZone = $(this)
       .parent()
       .parent()
@@ -476,7 +495,7 @@ $(() => {
     }
   });
 
-  $('#currencyCronjobLiveExchangeRate input').on('change', function () {
+  $('#currencyCronjobLiveExchangeRate input').change(function () {
     let enable = 0;
     const parentZone = $(this)
       .parent()
@@ -496,7 +515,7 @@ $(() => {
     $.ajax({
       url: `index.php?controller=AdminCurrencies&token=${token}`,
       cache: false,
-      data: `ajax=1&action=cronjobLiveExchangeRate&controller=AdminCurrencies&enable=${enable}`,
+      data: `ajax=1&action=cronjobLiveExchangeRate&tab=AdminCurrencies&enable=${enable}`,
     });
   });
 
@@ -510,41 +529,4 @@ $(() => {
 
     $('#modal-shipping').modal();
   });
-
-  // Function to debounce
-  function debounce(func, wait) {
-    let timeout;
-
-    return function (...args) {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-  }
-
-  // Function to update page head CSS properties
-  const prefixName = 'cdk';
-
-  function updatePadding() {
-    const offset = 16;
-    const targetElement = document.querySelector('#content.bootstrap');
-    const referenceElement = document.querySelector('#content.bootstrap .page-head');
-
-    if (!targetElement || !referenceElement) return;
-
-    const referenceHeight = referenceElement.offsetHeight + offset;
-
-    const pageHead = `--${prefixName}-page-head-height`;
-    const pageHeadWithTabs = `--${prefixName}-page-head-with-tabs-height`;
-    document.documentElement.style.setProperty(pageHead, `${referenceHeight}px`);
-    document.documentElement.style.setProperty(pageHeadWithTabs, `${referenceHeight}px`);
-  }
-
-  // Initial padding update
-  updatePadding();
-
-  // Create a debounced version of the updatePadding function
-  const debouncedUpdatePadding = debounce(updatePadding, 100);
-
-  // Update padding when the window is resized
-  window.addEventListener('resize', debouncedUpdatePadding);
 });
