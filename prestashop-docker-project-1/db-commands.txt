@@ -1,0 +1,5 @@
+IMPORT/UAKTUALNIENIE BAZY:
+docker compose exec -T db mysql -uroot -proot_password prestashop < db/seed/initial.sql
+
+EXPORT/DUMP/ZAPIS BAZY:
+docker exec $(docker compose ps -q db) sh -c 'exec mysqldump -u root -proot_password prestashop' > db/seed/initial.sql
