@@ -1,3 +1,9 @@
+PRZED URUCHOMIENIEM (JAK JEST BLAD)
+cd prestashop
+rmdir /S /Q modules\ps_accounts
+rmdir /S /Q var\cache\dev
+rmdir /S /Q var\cache\prod
+
 IMPORT/UAKTUALNIENIE BAZY:
 docker compose exec -T db mysql -uroot -proot_password prestashop < db/seed/initial.sql
 
