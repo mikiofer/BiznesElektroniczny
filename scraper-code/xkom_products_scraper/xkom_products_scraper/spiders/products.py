@@ -114,7 +114,7 @@ class ProductsSpider(scrapy.Spider):
             if next_span:
                 parent_a = next_span.xpath('ancestor::a[1]/@href').get()
                 if parent_a:
-                    yield response.follow(parent_a, callback=self.parse_listing, meta={"cat_url": cat_url, "cat_count": cat_count})
+                    yield response.follow(parent_a, callback=self.parse_listing, meta={"cat_url": cat_url, "count": count})
                     return
             # fallback: try to detect current page and increment page param
             parsed = urlparse(response.url)
