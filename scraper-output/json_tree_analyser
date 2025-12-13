@@ -1,0 +1,52 @@
+import json
+
+def print_tree(categories, prefix=""):
+    """
+    Recursively prints the category tree with product counts.
+    """
+    # Total items in this list of categories
+    count = len(categories)
+    
+    for i, category in enumerate(categories):
+        name = category.get('name', 'Unnamed')
+        products = category.get('products', [])
+        subcategories = category.get('subcategories', [])
+        
+        product_count = len(products)
+        
+        # Determine if this is the last item in the current branch
+        is_last = (i == count - 1)
+        
+        # visual markers for the tree structure
+        marker = "└── " if is_last else "├── "
+        
+        # Print the current node
+        print(f"{prefix}{marker}{name} [Products: {product_count}]")
+        
+        # Prepare the prefix for the children of this node
+        # If this was the last node, children get empty space, otherwise a vertical line
+        new_prefix = prefix + ("    " if is_last else "│   ")
+        
+        # Recursively print subcategories
+        if subcategories:
+            print_tree(subcategories, new_prefix)
+
+def analyze_json_tree(file_path):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        
+        print(f"Tree Analysis for: {file_path}")
+        print("=" * 60)
+        # The root of your JSON is a list, so we pass it directly
+        print_tree(data)
+        print("=" * 60)
+        
+    except FileNotFoundError:
+        print("Error: File not found. Please check the file path.")
+    except json.JSONDecodeError:
+        print("Error: Failed to decode JSON. The file might be corrupted.")
+
+# --- Usage ---
+if __name__ == "__main__":
+    analyze_json_tree('pruned_tree.json')
