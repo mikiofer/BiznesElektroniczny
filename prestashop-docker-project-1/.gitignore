@@ -67,7 +67,17 @@ npm-debug.log
 ###############################
 # Composer/PHP
 ###############################
-vendor/
+#vendor/
+# ignoruj wszystkie vendory
+**/vendor/
+# ale nie ignoruj vendora w ps_accounts (i jego zawartości)
+!prestashop/modules/ps_accounts/vendor/
+!prestashop/modules/ps_accounts/vendor/**
+# jeżeli po drodze masz ignorowane katalogi nadrzędne,
+# to dołóż też te od-ignorowania (zwykle nie są potrzebne, ale bywają)
+!prestashop/
+!prestashop/modules/
+!prestashop/modules/ps_accounts/
 composer.lock
 
 ###############################
