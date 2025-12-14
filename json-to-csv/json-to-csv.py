@@ -11,13 +11,29 @@ TAX_RULE_ID = 1
 ACTIVE = 1
 AVAILABLE_FOR_ORDER = 1
 SHOW_PRICE = 1
+BASE_IMAGE_URL = "http://localhost/import-images"
 CATEGORY_MAP = {
+    #---LAPTOPY I KOMPUTERY---
     "https://www.x-kom.pl/g-2/c/159-laptopy-notebooki-ultrabooki.html":
         "Laptopy i komputery/Laptopy-Notebooki-Ultrabooki",
     "https://www.x-kom.pl/g-2/c/3524-laptopy-biznesowe.html":
         "Laptopy i komputery/Laptopy biznesowe",
+    #---SMARTFONY I SMARTWATCHE    
+    "https://www.x-kom.pl/g-4/c/1590-smartfony-i-telefony.html":
+        "Smartfony i smartwatche/Smartfony i telefony",
+    "https://www.x-kom.pl/g-4/c/1663-tablety.html":
+        "Smartfony i smartwatche/Tablety",
+    #---GAMING I STREAMING---    
+    "https://www.x-kom.pl/g-7/c/2382-laptopy-do-gier.html":
+        "Gaming i streaming/Laptopy do gier",
+    "https://www.x-kom.pl/g-7/c/2370-komputery-do-gier.html":
+        "Gaming i streaming/Komputery do gier",    
+    #---TV I AUDIO---
+    "https://www.x-kom.pl/g-8/c/1117-telewizory.html":
+        "TV i audio/Telewizory",   
+    "https://www.x-kom.pl/g-8/c/3442-soundbary.html":
+        "TV i audio/Soundbary",   
 }
-BASE_IMAGE_URL = "http://localhost/import-images"
 
 
 
@@ -98,7 +114,7 @@ def json_to_csv(input_json: Path, output_csv: Path, target_subcategory_url: str,
         if sub.get("url") != target_subcategory_url:
             continue
 
-        title = p.get("title", "").strip()
+        title = (p.get("title") or "").strip()
         if not title:
             continue
 
@@ -150,5 +166,14 @@ def json_to_csv(input_json: Path, output_csv: Path, target_subcategory_url: str,
 if __name__ == "__main__":
     #---LAPTOPY I KOMPUTERY---
     #json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-2/c/159-laptopy-notebooki-ultrabooki.html")
-    json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-2/c/3524-laptopy-biznesowe.html")
-    #pass
+    #json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-2/c/3524-laptopy-biznesowe.html")
+    #---SMARTFONY I SMARTWATCHE
+    #json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-4/c/1590-smartfony-i-telefony.html")
+    #json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-4/c/1663-tablety.html")    
+    #---GAMING I STREAMING---
+    #json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-7/c/2382-laptopy-do-gier.html")    
+    #json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-7/c/2370-komputery-do-gier.html")        
+    #---TV I AUDIO---
+    #json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-8/c/1117-telewizory.html")        
+    #json_to_csv(Path("../scraper-output/shorter-products-jsons/pruned_tree.json"), Path("presta_import_products.csv"), "https://www.x-kom.pl/g-8/c/3442-soundbary.html")            
+    pass
