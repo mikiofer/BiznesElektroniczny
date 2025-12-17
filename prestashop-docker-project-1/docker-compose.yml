@@ -1,9 +1,10 @@
 services:
   prestashop:
     platform: linux/amd64
-    image: prestashop/prestashop:1.7.8
+    build: .                 
     ports:
-      - "8080:80"
+      - "8080:80"            
+      - "443:443"           
     environment:
       PS_DEV_MODE: 1
       DB_SERVER: db
@@ -12,7 +13,6 @@ services:
       DB_PASS: prestashop_password
       PS_INSTALL_AUTO: 0
     volumes:
-      #- prestashop:/var/www/html
       - ./prestashop:/var/www/html
     depends_on:
       - db
@@ -33,8 +33,8 @@ services:
     image: mailhog/mailhog
     container_name: mailhog
     ports:
-      - "8025:8025"   # panel WWW
-      - "1025:1025"   # SMTP  
+      - "8025:8025"
+      - "1025:1025"
 
 volumes:
   db_data:
