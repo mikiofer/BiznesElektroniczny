@@ -1,0 +1,89 @@
+###############################
+# PrestaShop – foldery do ignorowania
+###############################
+
+# Cache PrestaShop
+prestashop/var/cache/*
+prestashop/var/logs/*
+prestashop/var/sessions/*
+
+# Kompilowane pliki twig, smarty itp.
+prestashop/app/cache/*
+prestashop/app/logs/*
+prestashop/app/sessions/*
+
+# Uploady klientów (zdjęcia, pliki itp.)
+prestashop/upload/*
+prestashop/download/*
+prestashop/img/tmp/*
+prestashop/img/tmp/*
+prestashop/img/c/*        # cache obrazków
+prestashop/img/tmp/*
+prestashop/img/tmp/*
+prestashop/img/tmp/*
+
+# Stare pliki instalacyjne
+prestashop/install/*
+prestashop/admin*/autoupgrade/*
+prestashop/autoupgrade/*
+prestashop/autoupgradeTmp/*
+
+# Binarne logi i błędy
+*.log
+*.sql
+*.sqlite
+*.out
+*.tmp
+
+###############################
+# Docker
+###############################
+
+# Volumes, jeśli kiedyś powstaną lokalnie
+db_data/
+prestashop_data/
+
+# Pliki generowane
+docker-compose.override.yml
+
+###############################
+# System
+###############################
+
+# Windows / Mac / Linux śmieci
+Thumbs.db
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+###############################
+# Node/npm
+###############################
+node_modules/
+npm-debug.log
+
+###############################
+# Composer/PHP
+###############################
+#vendor/
+# ignoruj wszystkie vendory
+**/vendor/
+# ale nie ignoruj vendora w ps_accounts (i jego zawartości)
+!prestashop/modules/ps_accounts/vendor/
+!prestashop/modules/ps_accounts/vendor/**
+# jeżeli po drodze masz ignorowane katalogi nadrzędne,
+# to dołóż też te od-ignorowania (zwykle nie są potrzebne, ale bywają)
+!prestashop/
+!prestashop/modules/
+!prestashop/modules/ps_accounts/
+composer.lock
+
+###############################
+# Python (jeśli scraper będzie w Pythonie)
+###############################
+__pycache__/
+*.pyc
+.env
+.env.*

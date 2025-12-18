@@ -39,6 +39,3 @@ Ten projekt uruchamia środowisko PrestaShop przy użyciu Dockera i Docker Compo
 - Zatrzymanie: `docker compose down`
 
 ## Zespół
-- Członek 1: [Imię i nazwisko]
-- Członek 2: [Imię i nazwisko]
-- Członek 3: [Imię i nazwisko]
