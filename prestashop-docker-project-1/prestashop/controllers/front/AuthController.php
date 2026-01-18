@@ -86,24 +86,27 @@ class AuthControllerCore extends FrontController
 
         parent::initContent();
 
-        if ($should_redirect && !$this->ajax) {
+if ($should_redirect && !$this->ajax) {
             $back = rawurldecode(Tools::getValue('back'));
+            
+            // 1. Ustalamy adres docelowy
+            $targetUrl = __PS_BASE_URI__; // Domyślnie strona główna
 
             if (Tools::urlBelongsToShop($back)) {
-                // Checks to see if "back" is a fully qualified
-                // URL that is on OUR domain, with the right protocol
-                return $this->redirectWithNotifications($back);
+                $targetUrl = $back;
+            } elseif ($this->authRedirection) {
+                $targetUrl = $this->authRedirection;
             }
 
-            // Well we're not redirecting to a URL,
-            // so...
-            if ($this->authRedirection) {
-                // We may need to go there if defined
-                return $this->redirectWithNotifications($this->authRedirection);
+            // 2.Jeśli to była rejestracja, doklejamy parametr
+            if (Tools::isSubmit('submitCreate')) {
+                // Sprawdzamy, czy w linku jest już znak zapytania
+                $separator = (strpos($targetUrl, '?') === false) ? '?' : '&';
+                $targetUrl .= $separator . 'registered=true';
             }
 
-            // go home
-            return $this->redirectWithNotifications(__PS_BASE_URI__);
+            // 3. Wykonujemy przekierowanie na ustalony adres
+            return $this->redirectWithNotifications($targetUrl);
         }
     }
 
