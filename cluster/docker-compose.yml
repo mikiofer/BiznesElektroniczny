@@ -2,10 +2,10 @@ version: "3.8"
 
 services:
   prestashop:
-    image: ku1son/be_197615_prestashop:latest
+    image: ku1son/be_198068_prestashop:latest
     environment:
       DB_SERVER: "admin-mysql_db"
-      DB_NAME: "BE_197615"
+      DB_NAME: "BE_198068"
       DB_USER: "root"
       DB_PASSWD: "student"
 
@@ -15,7 +15,8 @@ services:
       PS_DEV_MODE: "0"
 
     ports:
-      - "19761:80"
+      - "19806:80"
+      - "19807:433"
 
     networks:
       - admin-mysql_default

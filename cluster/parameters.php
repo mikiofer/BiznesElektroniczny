@@ -3,7 +3,7 @@
   array (
     'database_host' => 'admin-mysql_db',
     'database_port' => '',
-    'database_name' => 'BE_197615',
+    'database_name' => 'BE_198068',
     'database_user' => 'root',
     'database_password' => 'student',
     'database_prefix' => 'ps_',
