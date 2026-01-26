@@ -1,0 +1,42 @@
+ssh rsww@172.20.83.101
+qwe123
+ssh hdoop@student-swarm01.maas
+
+---tworzenie obrazu--- (zalogowany)
+docker build -t ku1son/be_197615_prestashop:latest .
+docker push ku1son/be_197615_prestashop:latest
+
+---żeby uruchomić---
+cd /opt/storage/actina15-20/block-storage/students/projects/students-swarm-services/BE_197615
+docker stack deploy -c docker-compose.yml BE_197615 --with-registry-auth   [TYLKO JAK COS SIE ZMIENILO!!!]
+ssh -L 8080:student-swarm01.maas:19761 rsww@172.20.83.101  [LOKALNY TERMINAL NIE KLASTER][NIE ZAMYKAC TEGO TERMINALA!!!]
+
+---wejście do bazy---
+docker exec -it a1bbbb021c37 mysql -u root -p
+haslo: student
+((jeśli jest inne ID to: " docker ps | grep mysql " żeby wziąć ID))
+
+---wejście do kontenera---
+docker service ps BE_197615_prestashop [żeby wiedzieć na którym swarm]
+ssh hdoop@student-swarm0X.maas [X-taki-jak-pokazalo]
+sudo docker ps [żeby wziąć id]
+sudo docker exec -it 935ff2b451e5 bash [JAK JEST INNE ID TO INNE TAM WPISAC]
+
+---przeniesienie bazy---
+scp db/seed/initial.sql rsww@172.20.83.101:/tmp/initial.sql	[w folderze prestashop]
+scp /tmp/initial.sql hdoop@student-swarm01.maas:/tmp/initial.sql     [z bastionu]
+docker cp /tmp/initial.sql a1bbbb021c37:/tmp/initial.sql	[z swarm01]
+docker exec -i a1bbbb021c37 sh -c "mysql -u root -pstudent BE_197615 < /tmp/initial.sql"    [z swarm01]
+
+---parameters.php---
+cat > parameters.php << 'EOF'
+TRESC
+PLIKU
+EOF
+
+
+
+
+
+
+
