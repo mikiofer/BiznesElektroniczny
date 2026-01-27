@@ -9,7 +9,7 @@ docker push ku1son/be_198068_prestashop:latest
 ---żeby uruchomić---
 cd /opt/storage/actina15-20/block-storage/students/projects/students-swarm-services/BE_198068
 docker stack deploy -c docker-compose.yml BE_198068 --with-registry-auth   [TYLKO JAK COS SIE ZMIENILO!!!]
-ssh -L 8080:student-swarm01.maas:19806 rsww@172.20.83.101  [LOKALNY TERMINAL NIE KLASTER][NIE ZAMYKAC TEGO TERMINALA!!!]
+ssh -L 8080:student-swarm01.maas:19807 rsww@172.20.83.101  [LOKALNY TERMINAL NIE KLASTER][NIE ZAMYKAC TEGO TERMINALA!!!]
 
 ---wejście do bazy---
 docker exec -it a1bbbb021c37 mysql -u root -p

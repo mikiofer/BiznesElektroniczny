@@ -16,7 +16,7 @@ services:
 
     ports:
       - "19806:80"
-      - "19807:433"
+      - "19807:443"
 
     networks:
       - admin-mysql_default
