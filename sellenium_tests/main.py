@@ -16,9 +16,11 @@ def random_str(length=8):
     return ''.join(random.choices(string.ascii_lowercase, k=length))
 
 
-URL_SKLEPU = "http://localhost:8080"
-KAT_1_URL = f"{URL_SKLEPU}/11-laptopy-biznesowe"
-KAT_2_URL = f"{URL_SKLEPU}/13-smartfony-i-smartwatche"
+URL_SKLEPU = "https://localhost:8080"
+# KAT_1_URL = f"{URL_SKLEPU}/11-laptopy-biznesowe"
+# KAT_2_URL = f"{URL_SKLEPU}/13-smartfony-i-smartwatche"
+KAT_1_URL = f"{URL_SKLEPU}/index.php?id_category=10&controller=category"
+KAT_2_URL = f"{URL_SKLEPU}/index.php?id_category=13&controller=category"
 
 MAX_PRODUCTS = 10
 CHROME_DRIVER_PATH = "./chromedriver.exe"
@@ -51,29 +53,6 @@ wait = WebDriverWait(driver, 10)
 # =====================
 # FUNKCJE
 # =====================
-
-def get_product_urls(category_url, limit=5):
-    driver.get(category_url)
-
-    # czekamy aż produkty się załadują
-    wait.until(
-        EC.presence_of_all_elements_located(
-            (By.CSS_SELECTOR, ".thumbnail.product-thumbnail")
-        )
-    )
-
-    anchors = driver.find_elements(By.CSS_SELECTOR, ".thumbnail.product-thumbnail")
-
-    urls = []
-    for a in anchors:
-        href = a.get_attribute("href")
-        if href and href not in urls:
-            urls.append(href)
-
-    print(f"🔎 Znaleziono {len(urls)} produktów w kategorii")
-    return urls[:limit]
-
-
 def set_quantity(qty):
     qty_input = driver.find_element(By.ID, "quantity_wanted")
 
@@ -93,76 +72,130 @@ def set_quantity(qty):
     # 4️⃣ poczekaj aż input faktycznie ma poprawną wartość
     WebDriverWait(driver, 3).until(lambda d: qty_input.get_attribute("value") == str(qty))
 
+def get_product_urls(category_url):
+    """
+    Pobiera WSZYSTKIE linki z danej kategorii, bez limitu.
+    """
+    driver.get(category_url)
+
+    # Czekamy na załadowanie produktów
+    try:
+        wait.until(
+            EC.presence_of_all_elements_located(
+                (By.CSS_SELECTOR, ".thumbnail.product-thumbnail")
+            )
+        )
+    except TimeoutException:
+        print(f"⚠️ Pusta kategoria lub błąd ładowania: {category_url}")
+        return []
+
+    anchors = driver.find_elements(By.CSS_SELECTOR, ".thumbnail.product-thumbnail")
+
+    urls = []
+    for a in anchors:
+        href = a.get_attribute("href")
+        if href and href not in urls:
+            urls.append(href)
+
+    print(f"🔎 Znaleziono {len(urls)} produktów w kategorii (pobrano wszystkie)")
+    return urls  # ⚠️ USUNIĘTO [:limit] - zwracamy całą listę
+
 
 def add_single_product(url):
     driver.get(url)
 
+    # 1. Sprawdzenie czy przycisk istnieje i jest KLIKALNY
     try:
-        qty_input = WebDriverWait(driver, 5).until(
+        qty_input = WebDriverWait(driver, 3).until(
             EC.visibility_of_element_located((By.ID, "quantity_wanted"))
         )
-        add_btn = WebDriverWait(driver, 5).until(
+        add_btn = WebDriverWait(driver, 3).until(
             EC.presence_of_element_located((By.CLASS_NAME, "add-to-cart"))
         )
+
+        # ⚠️ NOWOŚĆ: Sprawdzenie czy przycisk nie jest zablokowany (np. brak towaru)
+        if not add_btn.is_enabled():
+            print(f"⚠️ Produkt niedostępny (przycisk nieaktywny): {url}")
+            return False
+
     except TimeoutException:
-        print("⚠️ To nie jest strona produktu – pomijam")
+        print("⚠️ To nie jest strona produktu lub brak przycisku zakupu – pomijam")
         return False
 
-    # pobranie stocku
+    # 2. Sprawdzenie stanu magazynowego
     try:
         stock_el = driver.find_element(By.CSS_SELECTOR, ".product-quantities")
         stock_text = stock_el.text
         stock = int(''.join(filter(str.isdigit, stock_text)))
     except:
+        # Jeśli nie znaleziono informacji o stanie, zakładamy ostrożnie 0 lub sprawdzamy czy nie ma komunikatu "Brak w magazynie"
+        # Dla uproszczenia: jeśli nie ma info, próbujemy dodać (chyba że wywali błąd wyżej na buttonie)
         stock = 10
+
+        # Jeśli stock wynosi 0, od razu przerywamy
+    if stock <= 0:
+        print(f"⚠️ Stan magazynowy to 0 – pomijam: {url}")
+        return False
 
     qty = random.randint(1, 3)
     qty = min(qty, stock)
-    if qty == 0:
-        print("⚠️ Produkt niedostępny – pomijam")
-        return False
 
     set_quantity(qty)
 
     wait.until(lambda d: qty_input.get_attribute("value") == str(qty))
 
-    # 🔹 scroll + JS click
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_btn)
-    time.sleep(0.5)
-    driver.execute_script("arguments[0].click();", add_btn)
+    # 3. Dodawanie do koszyka
+    try:
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", add_btn)
+        time.sleep(0.5)
+        driver.execute_script("arguments[0].click();", add_btn)
 
-    # czekaj na modal
-    wait.until(EC.visibility_of_element_located((By.ID, "blockcart-modal")))
+        # Czekaj na modal
+        wait.until(EC.visibility_of_element_located((By.ID, "blockcart-modal")))
 
-    # zamknij modal
-    close_btn = driver.find_element(By.CSS_SELECTOR, "#blockcart-modal .close")
-    driver.execute_script("arguments[0].click();", close_btn)
-    time.sleep(0.5)
+        # Zamknij modal
+        close_btn = driver.find_element(By.CSS_SELECTOR, "#blockcart-modal .close")
+        driver.execute_script("arguments[0].click();", close_btn)
+        time.sleep(0.5)
 
-    print(f"✅ Dodano produkt ({qty} szt.)")
-    return True
+        print(f"✅ Dodano produkt ({qty} szt.)")
+        return True
 
+    except Exception as e:
+        print(f"❌ Błąd podczas klikania 'Dodaj': {e}")
+        return False
 
 
 def add_products_to_cart():
     categories = [KAT_1_URL, KAT_2_URL]
-    added = 0
+
+    # Licznik globalny (ile już mamy w koszyku w tej sesji)
+    # Można ewentualnie sprawdzić ile już jest w koszyku, ale załóżmy, że liczymy to co dodajemy teraz
+    added_total = 0
 
     for category in categories:
-        if added >= MAX_PRODUCTS:
+        # Jeśli już mamy dość produktów, przerywamy pętlę kategorii
+        if added_total >= MAX_PRODUCTS:
+            print("🏁 Osiągnięto limit produktów. Kończę dodawanie.")
             break
 
-        product_urls = get_product_urls(category, limit=5)
+        # Pobieramy WSZYSTKIE możliwe produkty z tej kategorii
+        product_urls = get_product_urls(category)
 
         for url in product_urls:
-            if added >= MAX_PRODUCTS:
+            # Sprawdzamy limit wewnątrz pętli produktów
+            if added_total >= MAX_PRODUCTS:
                 break
 
-            if add_single_product(url):
-                added += 1
+            # Próba dodania produktu (zwraca True/False)
+            success = add_single_product(url)
 
-    print(f"\n🛒 Łącznie dodano {added} produktów")
+            if success:
+                added_total += 1
+            else:
+                print("➡️ Szukam innego produktu...")
 
+    print(f"\n🛒 Łącznie dodano {added_total} produktów")
 
 def search_and_add_random_product(search_query="hunter"):
     # 1️⃣ Wchodzimy na stronę sklepu
@@ -204,7 +237,7 @@ def search_and_add_random_product(search_query="hunter"):
     return add_single_product(link)
 
 def remove_products_from_cart(n=3):
-    driver.get(f"{URL_SKLEPU}/koszyk")  # lub link do koszyka w Twoim sklepie
+    driver.get(f"{URL_SKLEPU}/index.php?controller=cart&action=show")  # lub link do koszyka w Twoim sklepie
     time.sleep(2)  # poczekaj aż strona koszyka się załaduje
 
     removed = 0
@@ -237,7 +270,7 @@ def remove_products_from_cart(n=3):
 
 
 def go_to_register_form():
-    driver.get(f"{URL_SKLEPU}/moje-konto")
+    driver.get(f"{URL_SKLEPU}/index.php?controller=my-account")
 
     try:
         register_link = WebDriverWait(driver, 10).until(
@@ -257,18 +290,19 @@ def go_to_register_form():
 
 
 def register_new_account():
-    driver.get(f"{URL_SKLEPU}/moje-konto")
-
-    # 1️⃣ Klikamy link "Nie masz konta? Załóż je tutaj"
-    try:
-        register_link = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "Załóż"))
-        )
-        register_link.click()
-        print("➡️ Przejście do formularza rejestracji")
-    except TimeoutException:
-        print("❌ Nie udało się znaleźć linku do rejestracji")
-        return None
+    driver.get(f"{URL_SKLEPU}/index.php?controller=my-account")
+    registration_url = f"{URL_SKLEPU}/index.php?controller=authentication&create_account=1"
+    driver.get(registration_url)
+    # # 1️⃣ Klikamy link "Nie masz konta? Załóż je tutaj"
+    # try:
+    #     register_link = WebDriverWait(driver, 10).until(
+    #         EC.element_to_be_clickable((By.PARTIAL_LINK_TEXT, "Załóż"))
+    #     )
+    #     register_link.click()
+    #     print("➡️ Przejście do formularza rejestracji")
+    # except TimeoutException:
+    #     print("❌ Nie udało się znaleźć linku do rejestracji")
+    #     return None
 
     # 2️⃣ Czekamy aż formularz będzie widoczny
     WebDriverWait(driver, 10).until(
@@ -289,7 +323,7 @@ def register_new_account():
 
     # 4️⃣ Klikamy checkboxy JS-em
     driver.execute_script("arguments[0].click();", driver.find_element(By.NAME, "customer_privacy"))
-    driver.execute_script("arguments[0].click();", driver.find_element(By.NAME, "psgdpr"))
+    # driver.execute_script("arguments[0].click();", driver.find_element(By.NAME, "psgdpr"))
 
     # 5️⃣ Klikamy przycisk "Zapisz" JS-em
     continue_btn = driver.find_element(By.CSS_SELECTOR, "button[data-link-action='save-customer']")
@@ -306,7 +340,7 @@ def checkout_order():
     print("➡️ Przechodzę do koszyka...")
 
     # Bezpośrednie wejście na URL koszyka (action=show)
-    cart_url = f"{URL_SKLEPU}/koszyk?action=show"
+    cart_url = f"{URL_SKLEPU}/index.php?controller=cart&action=show"
     driver.get(cart_url)
 
     try:
@@ -349,7 +383,9 @@ def finalize_order():
     4️⃣ Regulamin (poprawny checkbox)
     5️⃣ Zatwierdzenie zamówienia
     """
-    go_to_checkout_from_cart()
+    # go_to_checkout_from_cart()
+    cart_url = f"{URL_SKLEPU}/index.php?controller=order"
+    driver.get(cart_url)
     try:
         wait = WebDriverWait(driver, 10)
 
@@ -372,17 +408,76 @@ def finalize_order():
         driver.find_element(By.NAME, "confirmDeliveryOption").click()
         time.sleep(1)
 
-        # 3️⃣ Płatność przy odbiorze
-        print("➡️ Wybieram płatność przy odbiorze...")
-        payment_radio = driver.find_element(By.ID, "payment-option-2")
-        driver.execute_script("arguments[0].click();", payment_radio)
-        WebDriverWait(driver, 5).until(lambda d: payment_radio.is_selected())
-        print("✅ Płatność przy odbiorze zaznaczona")
+
+        # 3️⃣ Płatność - Metoda Inteligentna (szukanie po tekście)
+        print("➡️ Wybieram płatność...")
+
+        try:
+            # KROK 1: Czekamy, aż opcje płatności się załadują
+            # Szukamy wszystkich dostępnych radio buttonów z opcjami płatności
+            payment_options = wait.until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input[name='payment-option']"))
+            )
+
+            target_payment = None
+
+            # KROK 2: Pętla sprawdzająca, która opcja to "Płatność przy odbiorze"
+            for option in payment_options:
+                # Pobieramy ID inputa, np. "payment-option-2"
+                option_id = option.get_attribute("id")
+
+                # Szukamy etykiety (Label) powiązanej z tym ID, żeby odczytać tekst
+                # (np. "Płatność przy odbiorze")
+                label = driver.find_element(By.CSS_SELECTOR, f"label[for='{option_id}']")
+                text = label.text.lower()
+
+                print(f"   🔎 Znaleziono metodę: '{text}' (ID: {option_id})")
+
+                # Szukamy słów kluczowych: "odbior" (PL) lub "cash" (EN)
+                if "odbior" in text or "odbiór" in text or "cash" in text:
+                    target_payment = option
+                    print("   ✅ To jest szukana płatność!")
+                    break
+
+            # KROK 3: Kliknięcie
+            if target_payment:
+                driver.execute_script("arguments[0].click();", target_payment)
+            else:
+                # Jeśli nie znaleziono "przy odbiorze", bierzemy pierwszą lepszą z listy
+                print("⚠️ Nie znaleziono płatności przy odbiorze - wybieram pierwszą dostępną.")
+                driver.execute_script("arguments[0].click();", payment_options[0])
+
+        except Exception as e:
+            print(f"❌ Nie udało się wybrać płatności. Czy sekcja płatności jest widoczna? Błąd: {e}")
+            driver.save_screenshot("blad_platnosci.png")
+            return False
+
 
         # 4️⃣ Akceptacja regulaminu
         print("➡️ Akceptuję regulamin...")
-        terms_checkbox = driver.find_element(By.ID, "conditions_to_approve[terms-and-conditions]")
-        driver.execute_script("arguments[0].click();", terms_checkbox)
+
+        try:
+            # Używamy selektora CSS, który szuka inputa, którego nazwa ZAWIERA tekst 'terms-and-conditions'
+            # To jest bezpieczniejsze niż pełne ID z nawiasami
+            terms_checkbox = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "input[name*='terms-and-conditions']"))
+            )
+
+            # PrestaShop często ukrywa prawdziwy checkbox i pokazuje tylko ładną grafikę.
+            # Kliknięcie JS w ukryty input zazwyczaj działa najlepiej.
+            driver.execute_script("arguments[0].click();", terms_checkbox)
+
+            print("✅ Regulamin zaakceptowany (checkbox kliknięty JS)")
+
+        except Exception as e:
+            print(f"❌ Nie udało się kliknąć regulaminu: {e}")
+            # Awaryjnie: spróbujmy kliknąć w etykietę (Label) obok, jeśli kliknięcie w input zawiodło
+            try:
+                label = driver.find_element(By.CSS_SELECTOR, "label[for*='terms-and-conditions']")
+                driver.execute_script("arguments[0].click();", label)
+                print("✅ Regulamin zaakceptowany (kliknięto w etykietę)")
+            except:
+                pass
 
         # 5️⃣ Zatwierdzenie zamówienia
         print("➡️ Zatwierdzam zamówienie...")
@@ -431,7 +526,7 @@ def login_and_download_invoice(email="biznes@gmail.com", password="biznes"):
 
     try:
         print(f"➡️ Logowanie na konto: {email}...")
-        driver.get(f"{URL_SKLEPU}/moje-konto")
+        driver.get(f"{URL_SKLEPU}/index.php?controller=my-account")
 
         # 1. LOGOWANIE
         wait.until(EC.visibility_of_element_located((By.ID, "field-email"))).send_keys(email)
@@ -443,7 +538,7 @@ def login_and_download_invoice(email="biznes@gmail.com", password="biznes"):
 
         # 2. WEJŚCIE W HISTORIĘ
         print("➡️ Przechodzę do historii zamówień...")
-        driver.get(f"{URL_SKLEPU}/historia-zamowien")
+        driver.get(f"{URL_SKLEPU}/index.php?controller=history")
 
         # 3. SZUKANIE FAKTURY I STATUSU
         print("🔎 Analizuję zamówienia...")
@@ -535,7 +630,6 @@ try:
 
     checkout_order()
     finalize_order()
-
     logout()
     login_and_download_invoice(email="biznes@gmail.com", password="biznes")
 except Exception as e:
